@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { supabase } from "./supabase";
+import { useState, useRef, useEffect } from "react";
 
 // ── GOTHIC PALETTE ──────────────────────────────────────────────
 const G = {
@@ -273,7 +272,57 @@ function BioModal({ char, updateChar, onClose }) {
 export default function PsycheApp({ session }) {
   const [chars, setChars] = useState([]);
   const [dbLoading, setDbLoading] = useState(true);
-  const [saveStatus, setSaveStatus] = useState(''); // '', 'saving', 'saved', 'error'
+  const [saveStatus, setSaveStatus] = useState('');
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('psyche_chars');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.length > 0) {
+          setChars(parsed);
+          setActiveId(parsed[0].id);
+        } else {
+          const nc = {...emptyChar(), id: Date.now(), name: 'Новый персонаж'};
+          setChars([nc]); setActiveId(nc.id);
+        }
+      } else {
+        const nc = {...emptyChar(), id: Date.now(), name: 'Новый персонаж'};
+        setChars([nc]); setActiveId(nc.id);
+      }
+    } catch {
+      const nc = {...emptyChar(), id: Date.now(), name: 'Новый персонаж'};
+      setChars([nc]); setActiveId(nc.id);
+    }
+    setDbLoading(false);
+  }, []);
+
+  // Auto-save to localStorage
+  useEffect(() => {
+    if (dbLoading || chars.length === 0) return;
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem('psyche_chars', JSON.stringify(chars));
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(''), 2000);
+      } catch {
+        setSaveStatus('error');
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [chars, dbLoading]);
+
+  const deleteChar = (id) => {
+    const remaining = chars.filter(x => x.id !== id);
+    if (remaining.length === 0) {
+      const nc = {...emptyChar(), id: Date.now(), name: 'Новый персонаж'};
+      setChars([nc]); setActiveId(nc.id);
+    } else {
+      setChars(remaining);
+      setActiveId(remaining[0].id);
+    }
+  };
   const [activeId, setActiveId] = useState(1);
   const [tab, setTab] = useState("profile");
   const [analysisGroup, setAnalysisGroup] = useState(Object.keys(ANALYSTS_GROUPS)[0]);
@@ -303,84 +352,6 @@ export default function PsycheApp({ session }) {
   const fileInputRef = useRef();
   const chatEndRef = useRef();
 
-  // ── SUPABASE LOAD ON MOUNT ──────────────────────────────────────
-  useEffect(() => {
-    const loadChars = async () => {
-      setDbLoading(true);
-      const { data, error } = await supabase
-        .from('characters')
-        .select('*')
-        .order('created_at', { ascending: true });
-      if (error) {
-        console.error('Load error:', error);
-        setChars([{ ...emptyChar(), id: Date.now(), name: 'Новый персонаж' }]);
-      } else if (data && data.length > 0) {
-        setChars(data.map(row => ({
-          id: row.id, name: row.name || '', birthdate: row.birthdate || '',
-          behavior: row.behavior || '', childhood: row.childhood || '',
-          fear: row.fear || '', desire: row.desire || '',
-          wound: row.wound || '', mask: row.mask || '',
-          image: row.image || null, analyses: row.analyses || {},
-          _dbId: row.id,
-        })));
-        setActiveId(data[0].id);
-      } else {
-        const nc = { ...emptyChar(), id: Date.now(), name: 'Новый персонаж' };
-        setChars([nc]);
-        setActiveId(nc.id);
-      }
-      setDbLoading(false);
-    };
-    loadChars();
-  }, [session]);
-
-  // ── SUPABASE SAVE ───────────────────────────────────────────────
-  const saveChar = useCallback(async (c) => {
-    setSaveStatus('saving');
-    const payload = {
-      user_id: session.user.id,
-      name: c.name, birthdate: c.birthdate,
-      behavior: c.behavior, childhood: c.childhood,
-      fear: c.fear, desire: c.desire, wound: c.wound, mask: c.mask,
-      image: c.image && c.image.length > 100000 ? null : c.image, // skip huge images
-      analyses: c.analyses,
-      updated_at: new Date().toISOString(),
-    };
-    let error;
-    if (c._dbId) {
-      ({ error } = await supabase.from('characters').update(payload).eq('id', c._dbId));
-    } else {
-      const { data, error: e } = await supabase.from('characters').insert({ ...payload }).select().single();
-      error = e;
-      if (data) {
-        setChars(cs => cs.map(x => x.id === c.id ? { ...x, _dbId: data.id } : x));
-      }
-    }
-    setSaveStatus(error ? 'error' : 'saved');
-    setTimeout(() => setSaveStatus(''), 2000);
-  }, [session]);
-
-  // Auto-save 2s after any char change
-  useEffect(() => {
-    if (dbLoading || chars.length === 0) return;
-    const c = chars.find(x => x.id === activeId);
-    if (!c) return;
-    const timer = setTimeout(() => saveChar(c), 2000);
-    return () => clearTimeout(timer);
-  }, [chars, activeId, dbLoading, saveChar]);
-
-  const deleteChar = async (id) => {
-    const c = chars.find(x => x.id === id);
-    if (c?._dbId) await supabase.from('characters').delete().eq('id', c._dbId);
-    const remaining = chars.filter(x => x.id !== id);
-    if (remaining.length === 0) {
-      const nc = { ...emptyChar(), id: Date.now(), name: 'Новый персонаж' };
-      setChars([nc]); setActiveId(nc.id);
-    } else {
-      setChars(remaining);
-      setActiveId(remaining[0].id);
-    }
-  };
 
   const char = chars.find(c=>c.id===activeId);
   const updateChar = (fields) => setChars(cs=>cs.map(c=>c.id===activeId?{...c,...fields}:c));
@@ -591,10 +562,8 @@ export default function PsycheApp({ session }) {
           ))}
         </div>
         <button onClick={()=>setShowSave(true)} style={{background:"none",border:`0.5px solid ${G.border}`,borderRadius:7,padding:"6px 12px",fontSize:12,color:G.textMid,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}} className="hover-accent">✦ Экспорт</button>
-        {saveStatus==='saving'&&<div style={{fontSize:11,color:G.textDim,flexShrink:0}}>сохраняю...</div>}
         {saveStatus==='saved'&&<div style={{fontSize:11,color:G.green,flexShrink:0}}>✓ сохранено</div>}
         {saveStatus==='error'&&<div style={{fontSize:11,color:G.red,flexShrink:0}}>⚠ ошибка</div>}
-        <button onClick={()=>supabase.auth.signOut()} style={{background:"none",border:"none",color:G.textDim,fontSize:12,cursor:"pointer",fontFamily:"inherit",flexShrink:0,padding:"6px 8px"}} title="Выйти">Выйти</button>
       </div>
 
       <div style={{display:"flex",flex:1,overflow:"hidden"}}>

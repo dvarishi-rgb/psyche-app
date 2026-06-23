@@ -1,88 +1,79 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-
-// ── GOTHIC PALETTE ──────────────────────────────────────────────
+import { useState, useRef, useEffect } from "react";
 
 const G = {
-  bg: "#0d0b0f",
-  surface: "#13101a",
-  surfaceAlt: "#1a1525",
-  border: "#2a2035",
-  borderLight: "#3d3050",
-  accent: "#c9a96e",
-  accentDim: "#8a6d3f",
-  accentSoft: "#2a1f0a",
-  purple: "#9b7fcb",
-  purpleDim: "#4a3570",
-  purpleSoft: "#1a1030",
-  text: "#e8e0d5",
-  textMid: "#a09080",
-  textDim: "#5a5060",
-  red: "#c96e6e",
-  green: "#6ec9a9",
+  bg: "#0d0b0f", surface: "#13101a", surfaceAlt: "#1a1525",
+  border: "#2a2035", borderLight: "#3d3050",
+  accent: "#c9a96e", accentDim: "#8a6d3f", accentSoft: "#2a1f0a",
+  purple: "#9b7fcb", purpleDim: "#4a3570", purpleSoft: "#1a1030",
+  text: "#e8e0d5", textMid: "#a09080", textDim: "#5a5060",
+  red: "#c96e6e", green: "#6ec9a9",
 };
 
 const ANALYSTS_GROUPS = {
   "Базовые модели": [
-    { id:"ocean", name:"Big Five / OCEAN", icon:"🌊", short:"Большая пятёрка личностных черт",
-      tooltip:"Самая научно-доказанная модель личности. 5 измерений: Открытость, Добросовестность, Экстраверсия, Доброжелательность, Нейротизм. Покажет, где персонаж на каждой шкале и что это значит." },
-    { id:"mbti", name:"MBTI + когнитивные функции", icon:"🧩", short:"Тип личности и функциональный стек",
-      tooltip:"Myers-Briggs и юнгианские когнитивные функции. Покажет тип (например, INFJ), доминирующую функцию восприятия/суждения и как это влияет на поведение." },
-    { id:"enneagram", name:"Эннеаграмма", icon:"⭐", short:"Тип + крылья + уровни развития",
-      tooltip:"9 типов личности с глубинными мотивами. Покажет тип, крылья (смесь соседних типов), уровень здоровья и направления роста/стресса." },
-    { id:"attachment", name:"Стиль привязанности", icon:"🤝", short:"Детская и взрослая привязанность",
-      tooltip:"По Боулби и Эйнсворт. Как первые отношения с родителями сформировали все последующие — надёжный, тревожный, избегающий или дезорганизованный стиль." },
+    { id:"ocean", name:"Big Five / OCEAN", icon:"🌊", short:"Большая пятёрка личностных черт", tooltip:"Самая научно-доказанная модель личности. 5 измерений: Открытость, Добросовестность, Экстраверсия, Доброжелательность, Нейротизм." },
+    { id:"mbti", name:"MBTI + когнитивные функции", icon:"🧩", short:"Тип личности и функциональный стек", tooltip:"Myers-Briggs и юнгианские когнитивные функции. Покажет тип (например, INFJ) и как он проявляется в поведении." },
+    { id:"enneagram", name:"Эннеаграмма", icon:"⭐", short:"Тип + крылья + уровни развития", tooltip:"9 типов личности с глубинными мотивами. Тип, крылья, уровень здоровья, направления роста/стресса." },
+    { id:"attachment", name:"Стиль привязанности", icon:"🤝", short:"Детская и взрослая привязанность", tooltip:"По Боулби и Эйнсворт. Как первые отношения сформировали все последующие." },
   ],
   "Психоаналитический блок": [
-    { id:"freud", name:"Фрейд", icon:"🪞", short:"Ид, Эго, Суперэго + защитные механизмы",
-      tooltip:"Отец психоанализа. Расскажет что персонаж подавляет, как устроена его психика на трёх уровнях и откуда внутренние конфликты." },
-    { id:"jung", name:"Юнг — архетипы", icon:"🌙", short:"Персона, Тень, Анима/Анимус, Самость",
-      tooltip:"Архетипы и коллективное бессознательное. Что в Тени персонажа, его путь к целостности, доминирующий архетип." },
-    { id:"objects", name:"Объектные отношения", icon:"🪆", short:"Внутренние объекты и интроекты",
-      tooltip:"Кляйн, Фэйрберн, Винникотт. Какие внутренние образы людей живут в психике персонажа и как управляют его реальными отношениями." },
-    { id:"ifs", name:"IFS — внутренние части", icon:"🎭", short:"Менеджеры, Пожарные, Изгнанники",
-      tooltip:"Internal Family Systems (Шварц). Внутри каждого — множество частей. Покажет менеджеров (контролёров), пожарных (реактивных защитников) и изгнанников (раненые части)." },
-    { id:"defenses", name:"Защитные механизмы", icon:"🛡️", short:"Полный список + как проявляются",
-      tooltip:"Детальный разбор всех защит: вытеснение, проекция, рационализация, расщепление и другие. Как каждая работает именно у этого персонажа." },
+    { id:"freud", name:"Фрейд", icon:"🪞", short:"Ид, Эго, Суперэго + защиты", tooltip:"Что персонаж подавляет, как устроена психика на трёх уровнях и откуда внутренние конфликты." },
+    { id:"jung", name:"Юнг — архетипы", icon:"🌙", short:"Персона, Тень, Анима/Анимус", tooltip:"Архетипы и коллективное бессознательное. Тень, путь к целостности, доминирующий архетип." },
+    { id:"objects", name:"Объектные отношения", icon:"🪆", short:"Внутренние объекты и интроекты", tooltip:"Кляйн, Фэйрберн, Винникотт. Какие образы значимых людей живут в психике." },
+    { id:"ifs", name:"IFS — внутренние части", icon:"🎭", short:"Менеджеры, Пожарные, Изгнанники", tooltip:"Internal Family Systems. Менеджеры, пожарники, изгнанники — система частей персонажа." },
+    { id:"defenses", name:"Защитные механизмы", icon:"🛡️", short:"Полный список + как проявляются", tooltip:"Вытеснение, проекция, рационализация, расщепление — как каждый работает у этого персонажа." },
   ],
   "Развитие и путь": [
-    { id:"erikson", name:"Эриксон — стадии", icon:"🌱", short:"Незакрытые стадии развития",
-      tooltip:"8 стадий психосоциального развития. Покажет на какой стадии застрял персонаж и какой кризис не был разрешён." },
-    { id:"campbell", name:"Путь героя (Кэмпбелл)", icon:"⚔️", short:"Где персонаж на мономифе",
-      tooltip:"17 этапов героического путешествия. Покажет где персонаж находится сейчас — призыв, испытание, инициация, возвращение." },
-    { id:"character", name:"Характерология", icon:"📐", short:"Тип по Личко / Леонгарду",
-      tooltip:"Клиническая типология акцентуаций характера. Покажет доминирующий тип (эпилептоид, истероид, шизоид...) и его проявления." },
-    { id:"trauma", name:"Травматический профиль", icon:"💔", short:"Типы травм, диссоциация, сценарии",
-      tooltip:"Виды травм (простая/сложная/развитийная), диссоциативные паттерны и повторяющиеся сценарии которые персонаж воссоздаёт снова и снова." },
+    { id:"erikson", name:"Эриксон — стадии", icon:"🌱", short:"Незакрытые стадии развития", tooltip:"8 стадий психосоциального развития. На какой застрял персонаж, какой кризис не разрешён." },
+    { id:"campbell", name:"Путь героя (Кэмпбелл)", icon:"⚔️", short:"Где персонаж на мономифе", tooltip:"17 этапов героического путешествия. Где персонаж сейчас — призыв, испытание, возвращение." },
+    { id:"character", name:"Характерология", icon:"📐", short:"Тип по Личко / Леонгарду", tooltip:"Клиническая типология акцентуаций. Эпилептоид, истероид, шизоид и их проявления." },
+    { id:"trauma", name:"Травматический профиль", icon:"💔", short:"Типы травм, диссоциация, сценарии", tooltip:"Виды травм, диссоциативные паттерны, повторяющиеся сценарии." },
   ],
   "Глубокие модули": [
-    { id:"natal", name:"Натальная карта", icon:"✨", short:"Психологическая астрология",
-      tooltip:"Психологическая интерпретация астрологической карты персонажа. Солнце (эго), Луна (бессознательное), Асцендент (маска), ключевые аспекты." },
-    { id:"shadow", name:"Теневая работа", icon:"🖤", short:"Что персонаж в себе отрицает",
-      tooltip:"По Юнгу и Роберту Джонсону. Что персонаж проецирует на других, от чего бежит в себе, и что Тень пытается ему сказать." },
-    { id:"existential", name:"Экзистенциальный анализ", icon:"🕯️", short:"Смысл, свобода, одиночество, смерть",
-      tooltip:"По Ялому и Хайдеггеру. Как персонаж отвечает на четыре данности существования: смерть, свобода, изоляция, бессмысленность." },
-    { id:"narrative", name:"Нарративная терапия", icon:"📖", short:"Какую историю рассказывает о себе",
-      tooltip:"По Уайту и Эпстону. Какой доминирующий нарратив управляет жизнью персонажа, и какая альтернативная история возможна." },
-    { id:"kafka", name:"Кафка", icon:"🚪", short:"Отчуждение и абсурд власти",
-      tooltip:"Отчуждение, абсурдная власть, невозможность быть понятым. Как кафкианский ужас живёт в персонаже." },
-    { id:"spielrein", name:"Шпильрейн", icon:"🌹", short:"Разрушение как трансформация",
-      tooltip:"Первая женщина-психоаналитик. Влечение к разрушению как источник нового рождения. Что должно умереть в персонаже чтобы он изменился." },
+    { id:"natal", name:"Натальная карта", icon:"✨", short:"Психологическая астрология", tooltip:"Солнце (эго), Луна (бессознательное), Асцендент (маска) — психологическая интерпретация." },
+    { id:"shadow", name:"Теневая работа", icon:"🖤", short:"Что персонаж в себе отрицает", tooltip:"По Юнгу. Проекции, бегство от себя, дар скрытый в Тени." },
+    { id:"existential", name:"Экзистенциальный анализ", icon:"🕯️", short:"Смысл, свобода, одиночество, смерть", tooltip:"По Ялому. Четыре данности: смерть, свобода, изоляция, бессмысленность." },
+    { id:"narrative", name:"Нарративная терапия", icon:"📖", short:"Какую историю рассказывает о себе", tooltip:"По Уайту. Доминирующий нарратив и альтернативная история." },
+    { id:"kafka", name:"Кафка", icon:"🚪", short:"Отчуждение и абсурд власти", tooltip:"Отчуждение, абсурдная власть, невозможность быть понятым." },
+    { id:"spielrein", name:"Шпильрейн", icon:"🌹", short:"Разрушение как трансформация", tooltip:"Влечение к разрушению как источник нового рождения." },
   ],
   "Практические модули": [
-    { id:"triggers", name:"Триггеры и кнопки", icon:"⚡", short:"Что выводит из себя",
-      tooltip:"Конкретный список триггеров персонажа — ситуации, слова, люди, которые активируют защиты или разрушают самоконтроль." },
-    { id:"strengths", name:"Сильные стороны", icon:"💎", short:"Суперсила и ресурсы",
-      tooltip:"Что персонаж делает лучше всех, какие качества являются его настоящей силой и как они связаны с его ранами." },
-    { id:"disorders", name:"Личностные паттерны", icon:"🔍", short:"Паттерны (мягко, без диагнозов)",
-      tooltip:"Не диагноз, а описание устойчивых паттернов — нарциссических, пограничных, параноидных черт. Мягко, как характерологические тенденции." },
-    { id:"growth", name:"Потенциал роста", icon:"🌿", short:"Терапия и путь развития",
-      tooltip:"Какой вид помощи нужен персонажу, какой терапевт ему подошёл бы, и конкретные шаги к психологическому росту." },
-    { id:"relations", name:"В отношениях", icon:"❤️", short:"Любовь, дружба, власть",
-      tooltip:"Паттерны поведения в близких отношениях, дружбе и иерархиях власти. Как персонаж любит, предаёт, привязывается и отстраняется." },
+    { id:"triggers", name:"Триггеры и кнопки", icon:"⚡", short:"Что выводит из себя", tooltip:"Конкретный список триггеров — ситуации, слова, люди." },
+    { id:"strengths", name:"Сильные стороны", icon:"💎", short:"Суперсила и ресурсы", tooltip:"Что персонаж делает лучше других, как раны питают силу." },
+    { id:"disorders", name:"Личностные паттерны", icon:"🔍", short:"Паттерны (мягко, без диагнозов)", tooltip:"Нарциссические, пограничные, параноидные черты как тенденции." },
+    { id:"growth", name:"Потенциал роста", icon:"🌿", short:"Терапия и путь развития", tooltip:"Какой вид терапии подошёл бы, конкретные шаги к психологическому здоровью." },
+    { id:"relations", name:"В отношениях", icon:"❤️", short:"Любовь, дружба, власть", tooltip:"Паттерны в любви, дружбе и иерархиях власти." },
   ],
 };
 
 const ALL_ANALYSTS = Object.values(ANALYSTS_GROUPS).flat();
+
+const ANALYST_PROMPTS = {
+  ocean: "Проанализируй персонажа по Большой пятёрке (OCEAN). Для каждого измерения дай оценку (Высокий/Средний/Низкий) и 2-3 предложения обоснования. Итого: какой тип личности? 150-180 слов.",
+  mbti: "Определи тип MBTI, функциональный стек (например: Ni-Fe-Ti-Se), объясни почему. Как доминирующая функция проявляется в поведении? 150-180 слов.",
+  enneagram: "Определи тип (1-9), крылья, уровень развития. Глубинный страх и желание применительно к персонажу. Направления стресса и роста. 150-180 слов.",
+  attachment: "Определи стиль привязанности в детстве и взрослом возрасте. Как ранний опыт сформировал паттерны в отношениях? 150-180 слов.",
+  freud: "Разбери Ид/Эго/Суперэго, ключевые защитные механизмы, вытесненные влечения, фиксации. 150-180 слов.",
+  jung: "Разбери Персону vs Самость, Тень (что вытеснено), Анима/Анимус, доминирующий архетип. Путь к индивидуации. 150-180 слов.",
+  objects: "Опиши внутренние объекты: образы значимых людей в психике, расщепление на хороший/плохой объект, переходные объекты. 150-180 слов.",
+  ifs: "Опиши систему частей: Менеджеры, Пожарники, Изгнанники. Что несёт Сущность персонажа? 150-180 слов.",
+  defenses: "Перечисли все защитные механизмы, объясни как каждый проявляется в поведении, какие ситуации их активируют. 150-180 слов.",
+  erikson: "Проанализируй все 8 стадий: какие пройдены, на какой застрял, какой кризис не разрешён. Какую задачу развития решает сейчас? 150-180 слов.",
+  campbell: "Определи место персонажа на пути героя: обычный мир, призыв, порог, испытания, бездна, трансформация, возвращение. 150-180 слов.",
+  character: "Определи тип акцентуации по Личко и Леонгарду (эпилептоидный, истероидный, шизоидный...). Как проявляется в стрессе и комфорте? 150-180 слов.",
+  trauma: "Составь травматический профиль: тип травм, диссоциативные паттерны, повторяющиеся сценарии. Как травма управляет жизнью? 150-180 слов.",
+  natal: "Психологическая интерпретация натальной карты: Солнце (эго), Луна (бессознательное), Асцендент (маска). Если даты нет — интерпретируй метафорически. 150-180 слов.",
+  shadow: "Опиши Тень: что отрицает в себе, на кого проецирует, чего боится увидеть. Что Тень пытается сказать? Дар в Тени? 150-180 слов.",
+  existential: "Разбери четыре данности: смерть, свобода, экзистенциальное одиночество, смысл/бессмысленность. Как персонаж справляется с каждой? 150-180 слов.",
+  narrative: "Какой доминирующий нарратив управляет жизнью? Что остаётся за кадром? Какая альтернативная история возможна? 150-180 слов.",
+  kafka: "Разбери отчуждение, абсурдную власть, невозможность быть понятым, вину без преступления. 150-180 слов.",
+  spielrein: "Деструктивное влечение как трансформация. Что должно умереть чтобы персонаж возродился? 150-180 слов.",
+  triggers: "Конкретный список триггеров: ситуации, слова, типы людей. Для каждого — что происходит внутри и снаружи. 150-180 слов.",
+  strengths: "Сильные стороны и суперсила: что делает лучше других, какие качества — ресурс. Как раны питают силу? 150-180 слов.",
+  disorders: "Устойчивые паттерны: нарциссические, пограничные, параноидные черты. Мягко, без диагнозов. Как проявляются в отношениях? 150-180 слов.",
+  growth: "Потенциал роста: что исцелить, какая терапия подойдёт (IFS, гештальт, EMDR...), конкретные шаги. 150-180 слов.",
+  relations: "Паттерны в любви (выбор партнёра, близость, конфликты), дружбе и иерархиях власти. 150-180 слов.",
+};
 
 const emptyChar = () => ({
   id: Date.now(), name: "", birthdate: "",
@@ -90,78 +81,390 @@ const emptyChar = () => ({
   image: null, analyses: {},
 });
 
-// ── API HELPERS ──────────────────────────────────────────────────
+// ── API ──────────────────────────────────────────────────────────
 
-// Truncate biography text to avoid context overflow (keep ~30000 chars = ~7500 tokens)
-const MAX_BIO_CHARS = 30000;
+const API_URL = "/.netlify/functions/claude";
+
+const callClaude = async (system, userContent, maxTokens = 1000) => {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: "user", content: userContent }],
+    }),
+  });
+  const d = await res.json();
+  if (d.error) throw new Error(d.error.message);
+  return d.content?.[0]?.text || "";
+};
 
 const truncateBio = (text) => {
-  if (text.length <= MAX_BIO_CHARS) return text;
-  // Keep first 20000 and last 10000 chars
-  const first = text.slice(0, 20000);
-  const last = text.slice(-10000);
-  return first + "\n\n[... середина текста пропущена для обработки ...]\n\n" + last;
+  if (text.length <= 30000) return text;
+  return text.slice(0, 20000) + "\n\n[...]\n\n" + text.slice(-8000);
 };
 
-// Retry with exponential backoff for rate limit errors
-const fetchWithRetry = async (body, retries = 3) => {
-  for (let attempt = 0; attempt < retries; attempt++) {
-    const res = await fetch("/.netlify/functions/claude", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+// ── STORAGE ──────────────────────────────────────────────────────
+
+const STORAGE_KEY = "psyche_v2_chars";
+
+const saveChars = (chars) => {
+  try {
+    // Don't save images to avoid quota issues — save separately
+    const toSave = chars.map(c => ({ ...c, image: c.image ? "__has_image__" : null }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    // Save images separately per character
+    chars.forEach(c => {
+      if (c.image && c.image !== "__has_image__") {
+        try { localStorage.setItem(`psyche_img_${c.id}`, c.image); } catch {}
+      }
     });
-    const d = await res.json();
-    if (d.error?.type === "rate_limit_error" && attempt < retries - 1) {
-      await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
-      continue;
-    }
-    return d;
-  }
+    return true;
+  } catch { return false; }
 };
 
-// ── COMPONENTS ──────────────────────────────────────────────────
+const loadChars = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const chars = JSON.parse(raw);
+    // Restore images
+    return chars.map(c => ({
+      ...c,
+      image: c.image === "__has_image__"
+        ? (localStorage.getItem(`psyche_img_${c.id}`) || null)
+        : c.image,
+    }));
+  } catch { return null; }
+};
 
-function GothicFrame({ children, style={} }) {
+// ── EXPORT HTML ─────────────────────────────────────────────────
+
+const buildExportHTML = (char, dynData = null, charB = null) => {
+  const isDyn = !!(dynData && charB);
+  const analyses = Object.entries(char.analyses || {});
+
+  const field = (label, value) => value
+    ? `<div class="field"><div class="field-label">${label}</div><div class="field-value">${value.replace(/\n/g, "<br>")}</div></div>`
+    : "";
+
+  const analysisBlocks = analyses.map(([id, text]) => {
+    const a = ALL_ANALYSTS.find(x => x.id === id);
+    return a ? `<div class="analysis-block"><div class="analysis-title">${a.icon} ${a.name}<span class="analysis-sub">${a.short}</span></div><div class="analysis-text">${text.replace(/\n/g, "<br>")}</div></div>` : "";
+  }).join("");
+
+  const dynBlocks = isDyn ? Object.entries(dynData).map(([id, text]) => {
+    const DYN_ASPECTS = [
+      { id: "attraction", icon: "✦", label: "Притяжение и химия" },
+      { id: "conflict", icon: "⚔️", label: "Конфликт и трение" },
+      { id: "power", icon: "👑", label: "Власть и иерархия" },
+      { id: "wounds", icon: "💔", label: "Ранящие паттерны" },
+      { id: "growth", icon: "🌿", label: "Рост и исцеление" },
+      { id: "shadow", icon: "🖤", label: "Теневая динамика" },
+      { id: "future", icon: "🔮", label: "Вероятное будущее" },
+      { id: "archetype", icon: "🌙", label: "Архетипическая пара" },
+      { id: "communication", icon: "💬", label: "Язык и коммуникация" },
+    ];
+    const asp = DYN_ASPECTS.find(x => x.id === id);
+    return asp ? `<div class="analysis-block"><div class="analysis-title">${asp.icon} ${asp.label}</div><div class="analysis-text">${text.replace(/\n/g, "<br>")}</div></div>` : "";
+  }).join("") : "";
+
+  return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${isDyn ? `${char.name} × ${charB.name}` : char.name} — Psyche</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d0b0f;
+    color: #e8e0d5;
+    font-family: 'EB Garamond', Georgia, serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 40px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+    padding-bottom: 40px;
+    border-bottom: 0.5px solid #2a2035;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 1px;
+    background: #c9a96e;
+  }
+  .psyche-brand {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    color: #c9a96e;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  .avatar-circle {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 1px solid #2a2035;
+    background: #1a1525;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 32px;
+    color: #c9a96e;
+    margin: 0 auto 24px;
+    overflow: hidden;
+  }
+  .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+  .char-name {
+    font-family: 'Cinzel', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: #e8e0d5;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .char-date {
+    font-size: 14px;
+    color: #5a5060;
+    letter-spacing: 0.1em;
+  }
+  .dyn-names {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 16px 0;
+  }
+  .dyn-name { font-family: 'Cinzel', serif; font-size: 20px; }
+  .dyn-name.a { color: #c9a96e; }
+  .dyn-name.b { color: #9b7fcb; }
+  .dyn-sep { font-size: 24px; color: #5a5060; }
+  .section { margin-bottom: 50px; }
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #c9a96e;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 0.5px solid #2a2035;
+  }
+  .fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .field { margin-bottom: 4px; }
+  .field-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #5a5060;
+    margin-bottom: 6px;
+  }
+  .field-value {
+    font-size: 15px;
+    color: #a09080;
+    line-height: 1.7;
+  }
+  .field.full { grid-column: 1 / -1; }
+  .analysis-block {
+    background: #13101a;
+    border: 0.5px solid #2a2035;
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .analysis-block::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 20px;
+    width: 40px; height: 1px;
+    background: #c9a96e;
+    opacity: 0.5;
+  }
+  .analysis-title {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    color: #e8e0d5;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .analysis-sub {
+    font-family: 'EB Garamond', serif;
+    font-size: 12px;
+    color: #5a5060;
+    font-weight: normal;
+    margin-left: 4px;
+  }
+  .analysis-text {
+    font-size: 14px;
+    color: #a09080;
+    line-height: 1.85;
+  }
+  .footer {
+    text-align: center;
+    padding-top: 40px;
+    border-top: 0.5px solid #2a2035;
+    position: relative;
+  }
+  .footer::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 50%;
+    transform: translateX(-50%);
+    width: 80px; height: 1px;
+    background: #c9a96e; opacity: 0.4;
+  }
+  .footer-text { font-size: 11px; color: #3d3050; letter-spacing: 0.2em; }
+  .ornament { color: #c9a96e; margin: 0 8px; opacity: 0.5; }
+  @media (max-width: 600px) {
+    .page { padding: 40px 20px; }
+    .fields-grid { grid-template-columns: 1fr; }
+    .char-name { font-size: 24px; }
+  }
+  @media print {
+    body { background: #0d0b0f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="psyche-brand">✦ &nbsp; P S Y C H E &nbsp; ✦</div>
+    ${isDyn
+      ? `<div class="dyn-names">
+          <span class="dyn-name a">${char.name || "Персонаж А"}</span>
+          <span class="dyn-sep">⚭</span>
+          <span class="dyn-name b">${charB.name || "Персонаж Б"}</span>
+        </div>
+        <div class="char-date">Анализ динамики отношений</div>`
+      : `<div class="avatar-circle">
+          ${char.image ? `<img src="${char.image}" alt="${char.name}">` : (char.name ? char.name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase() : "✦")}
+        </div>
+        <div class="char-name">${char.name || "Безымянный"}</div>
+        ${char.birthdate ? `<div class="char-date">${char.birthdate}</div>` : ""}`
+    }
+  </div>
+
+  ${!isDyn ? `
+  <div class="section">
+    <div class="section-title">Психологический профиль</div>
+    <div class="fields-grid">
+      ${field("Ключевое поведение", char.behavior)}
+      ${field("Дата рождения", char.birthdate)}
+      ${field("Детство и ранние травмы", char.childhood)}
+      ${field("Главный страх", char.fear)}
+      ${field("Желание / цель", char.desire)}
+      ${field("Психологическая рана", char.wound)}
+      ${char.mask ? `<div class="field full">${field("Маска / публичный фасад", char.mask)}</div>` : ""}
+    </div>
+  </div>` : `
+  <div class="section">
+    <div class="section-title">Профиль — ${char.name}</div>
+    <div class="fields-grid">
+      ${field("Поведение", char.behavior)}
+      ${field("Страх", char.fear)}
+      ${field("Желание", char.desire)}
+      ${field("Рана", char.wound)}
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">Профиль — ${charB.name}</div>
+    <div class="fields-grid">
+      ${field("Поведение", charB.behavior)}
+      ${field("Страх", charB.fear)}
+      ${field("Желание", charB.desire)}
+      ${field("Рана", charB.wound)}
+    </div>
+  </div>`}
+
+  ${!isDyn && analysisBlocks ? `
+  <div class="section">
+    <div class="section-title">Психоаналитические разборы</div>
+    ${analysisBlocks}
+  </div>` : ""}
+
+  ${isDyn && dynBlocks ? `
+  <div class="section">
+    <div class="section-title">Динамика отношений</div>
+    ${dynBlocks}
+  </div>` : ""}
+
+  <div class="footer">
+    <div class="footer-text">
+      <span class="ornament">✦</span>
+      Создано в Psyche
+      <span class="ornament">✦</span>
+      ${new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}
+      <span class="ornament">✦</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>`;
+};
+
+const downloadHTML = (html, filename) => {
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+// ── UI COMPONENTS ────────────────────────────────────────────────
+
+function GothicFrame({ children, style = {} }) {
   return (
-    <div style={{position:"relative",border:`0.5px solid ${G.border}`,borderRadius:12,background:G.surface,...style}}>
-      <div style={{position:"absolute",top:-1,left:20,width:40,height:1,background:G.accent,opacity:0.6}}/>
-      <div style={{position:"absolute",bottom:-1,right:20,width:40,height:1,background:G.accent,opacity:0.4}}/>
+    <div style={{ position: "relative", border: `0.5px solid ${G.border}`, borderRadius: 12, background: G.surface, ...style }}>
+      <div style={{ position: "absolute", top: -1, left: 20, width: 40, height: 1, background: G.accent, opacity: 0.6 }} />
+      <div style={{ position: "absolute", bottom: -1, right: 20, width: 40, height: 1, background: G.accent, opacity: 0.4 }} />
       {children}
     </div>
   );
 }
 
-function Avatar({ char, size=40 }) {
-  const initials = char.name ? char.name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase() : "✦";
-  if (char.image) return <img src={char.image} alt={char.name} style={{width:size,height:size,borderRadius:"50%",objectFit:"cover",border:`1px solid ${G.border}`}} />;
+function Avatar({ char, size = 40 }) {
+  const initials = char.name ? char.name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase() : "✦";
+  if (char.image) return <img src={char.image} alt={char.name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: `1px solid ${G.border}` }} />;
   return (
-    <div style={{width:size,height:size,borderRadius:"50%",background:G.surfaceAlt,border:`1px solid ${G.border}`,color:G.accent,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:500,fontSize:size*0.3,flexShrink:0,letterSpacing:"0.05em"}}>
+    <div style={{ width: size, height: size, borderRadius: "50%", background: G.surfaceAlt, border: `1px solid ${G.border}`, color: G.accent, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 500, fontSize: size * 0.3, flexShrink: 0 }}>
       {initials}
     </div>
   );
 }
 
-function Tooltip({ text, children }) {
-  const [show, setShow] = useState(false);
+function LoadingDots() {
   return (
-    <span style={{position:"relative",display:"inline-block"}} onMouseEnter={()=>setShow(true)} onMouseLeave={()=>setShow(false)}>
-      {children}
-      {show && (
-        <div style={{position:"absolute",left:0,top:"110%",zIndex:300,background:"#0d0b0f",border:`0.5px solid ${G.border}`,color:G.textMid,borderRadius:8,padding:"10px 14px",fontSize:11.5,lineHeight:1.65,width:240,boxShadow:"0 8px 30px rgba(0,0,0,0.6)",pointerEvents:"none"}}>
-          <div style={{position:"absolute",top:-5,left:12,width:9,height:9,background:"#0d0b0f",border:`0.5px solid ${G.border}`,borderBottom:"none",borderRight:"none",transform:"rotate(45deg)"}}/>
-          {text}
-        </div>
-      )}
-    </span>
-  );
-}
-
-function LoadingDots({ color=G.accent }) {
-  return (
-    <div style={{display:"flex",gap:5,alignItems:"center",padding:"6px 0"}}>
-      {[0,0.2,0.4].map((d,i)=><div key={i} style={{width:5,height:5,borderRadius:"50%",background:color,animation:`pulse 1.2s ease-in-out ${d}s infinite`}}/>)}
-      <span style={{fontSize:12,color:G.textDim,marginLeft:6,fontStyle:"italic"}}>обрабатываю...</span>
+    <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "6px 0" }}>
+      {[0, 0.2, 0.4].map((d, i) => <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: G.accent, animation: `pulse 1.2s ease-in-out ${d}s infinite` }} />)}
+      <span style={{ fontSize: 12, color: G.textDim, marginLeft: 6, fontStyle: "italic" }}>обрабатываю...</span>
     </div>
   );
 }
@@ -169,20 +472,18 @@ function LoadingDots({ color=G.accent }) {
 function AnalysisBlock({ analyst, text, loading }) {
   const [open, setOpen] = useState(true);
   return (
-    <GothicFrame style={{overflow:"hidden"}}>
-      <div onClick={()=>setOpen(o=>!o)} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",cursor:"pointer",borderBottom:open?`0.5px solid ${G.border}`:"none"}}>
-        <span style={{fontSize:18,opacity:0.85}}>{analyst.icon}</span>
-        <Tooltip text={analyst.tooltip}>
-          <span style={{fontWeight:500,fontSize:13,color:G.text,borderBottom:`1px dashed ${G.borderLight}`,paddingBottom:1,cursor:"help"}}>{analyst.name}</span>
-        </Tooltip>
-        <span style={{fontSize:11,color:G.textDim,marginLeft:4,display:"none"}} className="hide-mobile">{analyst.short}</span>
-        <span style={{marginLeft:"auto",color:G.textDim,fontSize:12,transition:"transform 0.2s",display:"inline-block",transform:open?"rotate(180deg)":"rotate(0deg)"}}>▾</span>
+    <GothicFrame style={{ overflow: "hidden" }}>
+      <div onClick={() => setOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", cursor: "pointer", borderBottom: open ? `0.5px solid ${G.border}` : "none" }}>
+        <span style={{ fontSize: 18 }}>{analyst.icon}</span>
+        <span style={{ fontWeight: 500, fontSize: 13, color: G.text }}>{analyst.name}</span>
+        <span style={{ fontSize: 11, color: G.textDim, marginLeft: 4 }} className="hide-mobile">{analyst.short}</span>
+        <span style={{ marginLeft: "auto", color: G.textDim, fontSize: 12, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▾</span>
       </div>
       {open && (
-        <div style={{padding:"14px 16px"}}>
-          {loading ? <LoadingDots /> : text ?
-            <div style={{fontSize:13,color:G.textMid,lineHeight:1.8,whiteSpace:"pre-wrap"}}>{text}</div> :
-            <div style={{fontSize:12,color:G.textDim,fontStyle:"italic"}}>Нажмите «Запустить анализ» чтобы получить разбор</div>
+        <div style={{ padding: "14px 16px" }}>
+          {loading ? <LoadingDots /> : text
+            ? <div style={{ fontSize: 13, color: G.textMid, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{text}</div>
+            : <div style={{ fontSize: 12, color: G.textDim, fontStyle: "italic" }}>Нажмите «Запустить анализ»</div>
           }
         </div>
       )}
@@ -190,135 +491,49 @@ function AnalysisBlock({ analyst, text, loading }) {
   );
 }
 
-// ── SAVE MODAL ──────────────────────────────────────────────────
-
-function SaveModal({ chars, char, onClose }) {
-  const [done, setDone] = useState("");
-
-  const getText = () => {
-    const analyses = Object.entries(char.analyses||{}).map(([id,text])=>{
-      const a = ALL_ANALYSTS.find(x=>x.id===id);
-      return a ? `\n${"═".repeat(40)}\n${a.name.toUpperCase()} — ${a.short}\n${"═".repeat(40)}\n${text}` : "";
-    }).join("\n");
-    return `✦ ПСИХОЛОГИЧЕСКОЕ ДОСЬЕ ✦\n${"═".repeat(50)}\n${char.name||"Безымянный"}\nДата: ${new Date().toLocaleDateString("ru-RU")}\n${"═".repeat(50)}\n\nДАТА РОЖДЕНИЯ: ${char.birthdate||"—"}\nКЛЮЧЕВОЕ ПОВЕДЕНИЕ:\n${char.behavior||"—"}\n\nДЕТСТВО И ТРАВМЫ:\n${char.childhood||"—"}\n\nГЛАВНЫЙ СТРАХ:\n${char.fear||"—"}\n\nЖЕЛАНИЕ / ЦЕЛЬ:\n${char.desire||"—"}\n\nПСИХОЛОГИЧЕСКАЯ РАНА:\n${char.wound||"—"}\n\nМАСКА / ФАСАД:\n${char.mask||"—"}\n\n${"═".repeat(50)}\nПСИХОАНАЛИТИЧЕСКИЕ РАЗБОРЫ:\n${analyses||"Анализ не проводился"}`;
-  };
-
-  const dl = (content, name, mime) => {
-    const a = document.createElement("a");
-    a.href = `data:${mime};charset=utf-8,`+encodeURIComponent(content);
-    a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setDone(name); setTimeout(()=>setDone(""),2500);
-  };
-
-  const printPDF = () => {
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${char.name||"Досье"}</title>
-<style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;color:#1a1a1a;line-height:1.7}h1{font-size:22px;border-bottom:2px solid #333;padding-bottom:8px}h2{font-size:15px;margin-top:28px;color:#333;border-left:3px solid #999;padding-left:10px}p{font-size:13px;margin:6px 0}pre{white-space:pre-wrap;font-family:Georgia,serif;font-size:13px}@media print{body{margin:20px}}</style>
-</head><body><h1>✦ ${char.name||"Персонаж"}</h1>
-<p><b>Дата рождения:</b> ${char.birthdate||"—"}</p>
-<h2>Ключевое поведение</h2><p>${char.behavior||"—"}</p>
-<h2>Детство и травмы</h2><p>${char.childhood||"—"}</p>
-<h2>Главный страх</h2><p>${char.fear||"—"}</p>
-<h2>Желание / цель</h2><p>${char.desire||"—"}</p>
-<h2>Психологическая рана</h2><p>${char.wound||"—"}</p>
-<h2>Маска / фасад</h2><p>${char.mask||"—"}</p>
-${Object.entries(char.analyses||{}).map(([id,text])=>{const a=ALL_ANALYSTS.find(x=>x.id===id);return a?`<h2>${a.name}</h2><pre>${text}</pre>`:""}).join("")}
-</body></html>`;
-    const w = window.open("","_blank"); w.document.write(html); w.document.close();
-    setTimeout(()=>w.print(), 600);
-  };
-
-  const btns = [
-    {icon:"🖨️", label:"PDF — печать / сохранить", fn:printPDF, note:"Откроется окно печати. Выберите «Сохранить как PDF»."},
-    {icon:"📄", label:"TXT — текст досье", fn:()=>dl(getText(),`${char.name||"персонаж"}_досье.txt`,"text/plain")},
-    {icon:"📋", label:"JSON — все данные", fn:()=>dl(JSON.stringify({version:"1.1",exportedAt:new Date().toISOString(),characters:chars.map(c=>({...c,image:c.image?"[img]":null}))},null,2),`psyche_${char.name||"данные"}.json`,"application/json")},
-  ];
-
-  return (
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16}} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <GothicFrame style={{width:"min(400px,92vw)",padding:24}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-          <div style={{fontWeight:600,fontSize:15,color:G.text,letterSpacing:"0.05em"}}>✦ Сохранить досье</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:G.textDim,fontSize:20,cursor:"pointer"}}>×</button>
-        </div>
-        <div style={{fontSize:12,color:G.textDim,marginBottom:14}}>Персонаж: <span style={{color:G.accent}}>{char.name||"Безымянный"}</span></div>
-        {done && <div style={{background:G.purpleSoft,border:`0.5px solid ${G.purple}`,borderRadius:8,padding:"8px 12px",fontSize:12,color:G.purple,marginBottom:10}}>✓ Скачано: {done}</div>}
-        <div style={{display:"flex",flexDirection:"column",gap:8}}>
-          {btns.map(b=>(
-            <div key={b.label}>
-              <button onClick={b.fn} style={{width:"100%",padding:"11px 14px",background:G.surfaceAlt,border:`0.5px solid ${G.border}`,borderRadius:9,fontSize:13,cursor:"pointer",textAlign:"left",fontFamily:"inherit",color:G.text,display:"flex",alignItems:"center",gap:10}}>
-                <span>{b.icon}</span><span>{b.label}</span>
-              </button>
-              {b.note&&<div style={{fontSize:11,color:G.textDim,padding:"4px 8px"}}>{b.note}</div>}
-            </div>
-          ))}
-        </div>
-      </GothicFrame>
-    </div>
-  );
-}
-
-// ── BIO MODAL ───────────────────────────────────────────────────
+// ── BIO MODAL ────────────────────────────────────────────────────
 
 function BioModal({ char, updateChar, onClose }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState("");
   const [error, setError] = useState("");
-  const [step, setStep] = useState(""); // progress message
-  const fileInputRef = useRef();
+  const fileRef = useRef();
 
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => setText(ev.target.result || "");
+    reader.onload = ev => setText(ev.target.result || "");
+    reader.onerror = () => setError("Не удалось прочитать файл");
     reader.readAsText(file, "UTF-8");
   };
 
   const run = async () => {
     if (!text.trim()) return;
-    setLoading(true);
-    setError("");
-
+    setLoading(true); setError("");
     try {
-      const bioText = truncateBio(text.trim());
-      const isTruncated = text.trim().length > MAX_BIO_CHARS;
+      const bio = truncateBio(text.trim());
+      let content = bio;
 
-      if (isTruncated) {
-        setStep("Текст большой — обрабатываю по частям...");
-      } else {
-        setStep("Читаю биографию...");
+      if (text.trim().length > 12000) {
+        setStep("Большой текст — сначала извлекаю суть...");
+        content = await callClaude(
+          "Из биографии персонажа извлеки ключевые психологические факты: имя, дата рождения, детство, страхи, желания, раны, маска, поведение. Будь подробным, не теряй важных деталей.",
+          `Биография:\n\n${bio}`,
+          2000
+        );
       }
 
-      // For very large texts, first extract key facts in a summarization pass
-      let contentForParsing = bioText;
-      if (text.trim().length > 15000) {
-        setStep("Извлекаю ключевые факты...");
-        const summaryRes = await fetchWithRetry({
-          model: "claude-sonnet-4-6",
-          max_tokens: 2000,
-          system: "Ты помощник-аналитик. Из биографии персонажа извлеки ключевые психологические факты: имя, дата рождения, детство и травмы, ключевые страхи, желания, раны, маска. Будь подробным — не теряй важных деталей. Пиши сжато но содержательно.",
-          messages: [{ role: "user", content: `Биография:\n\n${bioText}` }],
-        });
+      setStep("Заполняю профиль...");
+      const result = await callClaude(
+        `Из текста извлеки ТОЛЬКО JSON без markdown:
+{"name":"","birthdate":"ДД.ММ.ГГГГ или пусто","behavior":"подробно","childhood":"подробно","fear":"подробно","desire":"подробно","wound":"подробно","mask":"подробно"}`,
+        `Текст:\n\n${content}`,
+        1500
+      );
 
-        if (summaryRes?.error) throw new Error(summaryRes.error.message);
-        contentForParsing = summaryRes?.content?.[0]?.text || bioText;
-        setStep("Заполняю поля профиля...");
-      }
-
-      const res = await fetchWithRetry({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1500,
-        system: `Из текста о персонаже извлеки ТОЛЬКО JSON без markdown и без пояснений. Будь максимально подробным в каждом поле:
-{"name":"имя персонажа","birthdate":"ДД.ММ.ГГГГ или пусто","behavior":"подробное описание ключевого поведения","childhood":"детство, родители, ранние травмы и события","fear":"главный страх","desire":"глубинное желание или цель","wound":"психологическая рана из прошлого","mask":"публичный фасад, каким хочет казаться"}`,
-        messages: [{ role: "user", content: `Текст о персонаже:\n\n${contentForParsing}` }],
-      });
-
-      if (res?.error) throw new Error(res.error.message);
-
-      const rawText = res?.content?.[0]?.text || "{}";
-      const cleaned = rawText.replace(/```json|```/g, "").trim();
-      const p = JSON.parse(cleaned);
-
+      const p = JSON.parse(result.replace(/```json|```/g, "").trim());
       updateChar({
         ...(p.name && { name: p.name }),
         ...(p.birthdate && { birthdate: p.birthdate }),
@@ -331,63 +546,49 @@ function BioModal({ char, updateChar, onClose }) {
       });
       onClose();
     } catch (e) {
-      setError(`Не удалось разобрать: ${e.message}. Попробуйте ещё раз.`);
+      setError(`Ошибка: ${e.message}. Попробуйте ещё раз.`);
     }
-    setLoading(false);
-    setStep("");
+    setLoading(false); setStep("");
   };
 
-  const charCount = text.length;
-  const isLarge = charCount > 15000;
-
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:12}} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <GothicFrame style={{width:"min(680px,98vw)",maxHeight:"92vh",display:"flex",flexDirection:"column",padding:20,gap:12}}>
-        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12}}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 12 }} onClick={e => e.target === e.currentTarget && onClose()}>
+      <GothicFrame style={{ width: "min(680px,98vw)", maxHeight: "92vh", display: "flex", flexDirection: "column", padding: 20, gap: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <div style={{fontWeight:600,fontSize:15,color:G.text}}>📄 Импорт биографии</div>
-            <div style={{fontSize:12,color:G.textDim,marginTop:4}}>Вставьте или загрузите текст — анкету, описание, историю. AI разберёт поля сам.</div>
+            <div style={{ fontWeight: 600, fontSize: 15, color: G.text }}>📄 Импорт биографии</div>
+            <div style={{ fontSize: 12, color: G.textDim, marginTop: 4 }}>Вставьте или загрузите текст. AI разберёт поля сам.</div>
           </div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:G.textDim,fontSize:20,cursor:"pointer",flexShrink:0}}>×</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: G.textDim, fontSize: 20, cursor: "pointer" }}>×</button>
         </div>
 
-        {/* File upload button */}
-        <div>
-          <input ref={fileInputRef} type="file" accept=".txt,.md,.rtf" style={{display:"none"}} onChange={handleFile}/>
-          <button onClick={()=>fileInputRef.current.click()} style={{padding:"7px 14px",background:"none",border:`0.5px solid ${G.border}`,borderRadius:7,fontSize:12,color:G.textMid,cursor:"pointer",fontFamily:"inherit"}}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <input ref={fileRef} type="file" accept=".txt,.md" style={{ display: "none" }} onChange={handleFile} />
+          <button onClick={() => fileRef.current.click()} style={{ padding: "7px 14px", background: "none", border: `0.5px solid ${G.border}`, borderRadius: 7, fontSize: 12, color: G.textMid, cursor: "pointer", fontFamily: "inherit" }}>
             📂 Загрузить .txt файл
           </button>
-          <span style={{fontSize:11,color:G.textDim,marginLeft:10}}>или вставьте текст ниже</span>
+          <span style={{ fontSize: 11, color: G.textDim }}>или вставьте текст ниже</span>
         </div>
 
-        <textarea
-          value={text}
-          onChange={e=>setText(e.target.value)}
-          placeholder={"Вставьте биографию персонажа — любой объём до 40 000 символов.\nAI извлечёт имя, дату рождения, поведение, травмы, страхи и всё остальное."}
-          style={{flex:1,minHeight:220,maxHeight:"45vh",background:G.bg,border:`0.5px solid ${G.border}`,borderRadius:10,padding:"12px 14px",fontSize:13,fontFamily:"inherit",lineHeight:1.7,resize:"vertical",color:G.text,outline:"none"}}
+        <textarea value={text} onChange={e => setText(e.target.value)}
+          placeholder="Вставьте биографию — анкету, описание, историю. До 40 000 символов."
+          style={{ flex: 1, minHeight: 200, maxHeight: "40vh", background: G.bg, border: `0.5px solid ${G.border}`, borderRadius: 10, padding: "12px 14px", fontSize: 13, fontFamily: "inherit", lineHeight: 1.7, resize: "vertical", color: G.text, outline: "none" }}
         />
 
-        {isLarge && (
-          <div style={{fontSize:11,color:G.accent,background:G.accentSoft,borderRadius:6,padding:"6px 10px",border:`0.5px solid ${G.accentDim}`}}>
-            ✦ Большой текст ({charCount.toLocaleString()} симв.) — будет обработан в два прохода. Займёт ~10 сек.
+        {text.length > 12000 && (
+          <div style={{ fontSize: 11, color: G.accent, background: G.accentSoft, borderRadius: 6, padding: "6px 10px", border: `0.5px solid ${G.accentDim}` }}>
+            ✦ Большой текст ({text.length.toLocaleString()} симв.) — обработка займёт ~15 сек.
           </div>
         )}
 
-        {error && (
-          <div style={{fontSize:12,color:G.red,background:"rgba(201,110,110,0.1)",borderRadius:6,padding:"6px 10px",border:`0.5px solid ${G.red}`}}>
-            ⚠ {error}
-          </div>
-        )}
+        {error && <div style={{ fontSize: 12, color: G.red, background: "rgba(201,110,110,0.1)", borderRadius: 6, padding: "8px 12px", border: `0.5px solid ${G.red}` }}>⚠ {error}</div>}
 
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-          <div style={{fontSize:11,color:charCount > 40000 ? G.red : G.textDim}}>
-            {charCount.toLocaleString()} / 40 000 символов
-            {charCount > 40000 && " — рекомендуется сократить"}
-          </div>
-          {loading && step && <div style={{fontSize:11,color:G.accent,fontStyle:"italic"}}>{step}</div>}
-          <div style={{display:"flex",gap:10}}>
-            <button onClick={onClose} style={{padding:"8px 16px",background:"none",border:`0.5px solid ${G.border}`,borderRadius:8,fontSize:13,color:G.textMid,cursor:"pointer",fontFamily:"inherit"}}>Отмена</button>
-            <button onClick={run} disabled={loading||!text.trim()} style={{padding:"8px 20px",background:G.accent,border:"none",borderRadius:8,fontSize:13,color:"#0d0b0f",fontWeight:600,cursor:loading?"wait":"pointer",fontFamily:"inherit",opacity:loading||!text.trim()?0.6:1}}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+          <div style={{ fontSize: 11, color: text.length > 40000 ? G.red : G.textDim }}>{text.length.toLocaleString()} / 40 000</div>
+          {loading && <div style={{ fontSize: 11, color: G.accent, fontStyle: "italic" }}>{step}</div>}
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={onClose} style={{ padding: "8px 16px", background: "none", border: `0.5px solid ${G.border}`, borderRadius: 8, fontSize: 13, color: G.textMid, cursor: "pointer", fontFamily: "inherit" }}>Отмена</button>
+            <button onClick={run} disabled={loading || !text.trim()} style={{ padding: "8px 20px", background: G.accent, border: "none", borderRadius: 8, fontSize: 13, color: "#0d0b0f", fontWeight: 600, cursor: loading ? "wait" : "pointer", fontFamily: "inherit", opacity: loading || !text.trim() ? 0.6 : 1 }}>
               {loading ? "Читаю..." : "✦ Заполнить профиль"}
             </button>
           </div>
@@ -397,237 +598,241 @@ function BioModal({ char, updateChar, onClose }) {
   );
 }
 
-// ── MAIN APP ────────────────────────────────────────────────────
+// ── EXPORT MODAL ─────────────────────────────────────────────────
 
-export default function PsycheApp({ session }) {
+function ExportModal({ chars, char, dynResult, dynCharB, onClose }) {
+  const [done, setDone] = useState("");
+  const charB = chars.find(c => c.id === dynCharB);
+  const hasDyn = dynResult && Object.keys(dynResult).length > 0 && charB;
+
+  const exportChar = () => {
+    const html = buildExportHTML(char);
+    downloadHTML(html, `${char.name || "персонаж"}_досье.html`);
+    setDone("Досье скачано!");
+    setTimeout(() => setDone(""), 3000);
+  };
+
+  const exportDyn = () => {
+    if (!hasDyn) return;
+    const html = buildExportHTML(char, dynResult, charB);
+    downloadHTML(html, `${char.name}_${charB.name}_динамика.html`);
+    setDone("Динамика скачана!");
+    setTimeout(() => setDone(""), 3000);
+  };
+
+  const exportJSON = () => {
+    const data = JSON.stringify({ version: "2.0", exportedAt: new Date().toISOString(), characters: chars.map(c => ({ ...c, image: c.image ? "[img]" : null })) }, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "psyche_backup.json";
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setDone("Резервная копия скачана!");
+    setTimeout(() => setDone(""), 3000);
+  };
+
+  const importJSON = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.characters) {
+          alert(`Будет загружено ${data.characters.length} персонажей. Текущие данные будут заменены.`);
+          saveChars(data.characters);
+          window.location.reload();
+        }
+      } catch { alert("Неверный формат файла"); }
+    };
+    reader.readAsText(file);
+  };
+
+  const importRef = useRef();
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }} onClick={e => e.target === e.currentTarget && onClose()}>
+      <GothicFrame style={{ width: "min(440px,96vw)", padding: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
+          <div style={{ fontWeight: 600, fontSize: 15, color: G.text }}>✦ Экспорт и сохранение</div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: G.textDim, fontSize: 20, cursor: "pointer" }}>×</button>
+        </div>
+
+        {done && <div style={{ background: "#1a2a1a", border: `0.5px solid ${G.green}`, borderRadius: 8, padding: "8px 12px", fontSize: 12, color: G.green, marginBottom: 14 }}>✓ {done}</div>}
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ fontSize: 10, color: G.textDim, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 4 }}>Красивые выгрузки</div>
+
+          <button onClick={exportChar} style={{ padding: "12px 16px", background: G.accentSoft, border: `0.5px solid ${G.accentDim}`, borderRadius: 10, fontSize: 13, cursor: "pointer", textAlign: "left", fontFamily: "inherit", color: G.text, display: "flex", alignItems: "center", gap: 10 }}>
+            <span>📜</span>
+            <div>
+              <div style={{ fontWeight: 500 }}>Досье персонажа</div>
+              <div style={{ fontSize: 11, color: G.textDim, marginTop: 2 }}>{char.name || "Безымянный"} — красивый HTML файл</div>
+            </div>
+          </button>
+
+          {hasDyn ? (
+            <button onClick={exportDyn} style={{ padding: "12px 16px", background: G.purpleSoft, border: `0.5px solid ${G.purpleDim}`, borderRadius: 10, fontSize: 13, cursor: "pointer", textAlign: "left", fontFamily: "inherit", color: G.text, display: "flex", alignItems: "center", gap: 10 }}>
+              <span>⚭</span>
+              <div>
+                <div style={{ fontWeight: 500 }}>Динамика отношений</div>
+                <div style={{ fontSize: 11, color: G.textDim, marginTop: 2 }}>{char.name} × {charB.name} — красивый HTML файл</div>
+              </div>
+            </button>
+          ) : (
+            <div style={{ padding: "12px 16px", background: G.surfaceAlt, border: `0.5px solid ${G.border}`, borderRadius: 10, fontSize: 12, color: G.textDim, fontStyle: "italic" }}>
+              ⚭ Сделайте анализ динамики чтобы экспортировать
+            </div>
+          )}
+
+          <div style={{ fontSize: 10, color: G.textDim, textTransform: "uppercase", letterSpacing: "0.15em", marginTop: 8, marginBottom: 4 }}>Резервная копия</div>
+
+          <button onClick={exportJSON} style={{ padding: "12px 16px", background: G.surfaceAlt, border: `0.5px solid ${G.border}`, borderRadius: 10, fontSize: 13, cursor: "pointer", textAlign: "left", fontFamily: "inherit", color: G.text, display: "flex", alignItems: "center", gap: 10 }}>
+            <span>💾</span>
+            <div>
+              <div style={{ fontWeight: 500 }}>Скачать резервную копию</div>
+              <div style={{ fontSize: 11, color: G.textDim, marginTop: 2 }}>JSON со всеми персонажами и анализами</div>
+            </div>
+          </button>
+
+          <input ref={importRef} type="file" accept=".json" style={{ display: "none" }} onChange={importJSON} />
+          <button onClick={() => importRef.current.click()} style={{ padding: "12px 16px", background: G.surfaceAlt, border: `0.5px solid ${G.border}`, borderRadius: 10, fontSize: 13, cursor: "pointer", textAlign: "left", fontFamily: "inherit", color: G.textMid, display: "flex", alignItems: "center", gap: 10 }}>
+            <span>📂</span>
+            <div>
+              <div style={{ fontWeight: 500 }}>Восстановить из копии</div>
+              <div style={{ fontSize: 11, color: G.textDim, marginTop: 2 }}>Загрузить JSON файл (заменит текущие данные)</div>
+            </div>
+          </button>
+        </div>
+      </GothicFrame>
+    </div>
+  );
+}
+
+// ── MAIN APP ─────────────────────────────────────────────────────
+
+export default function PsycheApp() {
   const [chars, setChars] = useState([]);
   const [dbLoading, setDbLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
+  const [activeId, setActiveId] = useState(null);
+  const [tab, setTab] = useState("profile");
+  const [analysisGroup, setAnalysisGroup] = useState(Object.keys(ANALYSTS_GROUPS)[0]);
+  const [selectedAnalysts, setSelectedAnalysts] = useState(ALL_ANALYSTS.map(a => a.id));
+  const [loadingAnalysts, setLoadingAnalysts] = useState({});
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [showBio, setShowBio] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dynCharA, setDynCharA] = useState(null);
+  const [dynCharB, setDynCharB] = useState(null);
+  const [dynAspects, setDynAspects] = useState(["attraction", "conflict", "power", "wounds", "growth", "shadow", "future"]);
+  const [dynResult, setDynResult] = useState({});
+  const [dynLoading, setDynLoading] = useState({});
+  const [chatHistories, setChatHistories] = useState({});
+  const [forecastResult, setForecastResult] = useState("");
+  const [forecastLoading, setForecastLoading] = useState(false);
+  const [forecastType, setForecastType] = useState("quick");
+
+  const fileInputRef = useRef();
+  const chatEndRef = useRef();
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("psyche_chars");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && parsed.length > 0) {
-          setChars(parsed);
-          setActiveId(parsed[0].id);
-        } else {
-          const nc = {...emptyChar(), id: Date.now(), name: "Новый персонаж"};
-          setChars([nc]); setActiveId(nc.id);
-        }
-      } else {
-        const nc = {...emptyChar(), id: Date.now(), name: "Новый персонаж"};
-        setChars([nc]); setActiveId(nc.id);
-      }
-    } catch {
-      const nc = {...emptyChar(), id: Date.now(), name: "Новый персонаж"};
-      setChars([nc]); setActiveId(nc.id);
+    const saved = loadChars();
+    if (saved && saved.length > 0) {
+      setChars(saved);
+      setActiveId(saved[0].id);
+    } else {
+      const nc = { ...emptyChar(), name: "Новый персонаж" };
+      setChars([nc]);
+      setActiveId(nc.id);
     }
     setDbLoading(false);
   }, []);
 
   useEffect(() => {
     if (dbLoading || chars.length === 0) return;
-    const timer = setTimeout(() => {
-      try {
-        localStorage.setItem("psyche_chars", JSON.stringify(chars));
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus(""), 2000);
-      } catch {
-        setSaveStatus("error");
-      }
-    }, 1000);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => {
+      const ok = saveChars(chars);
+      setSaveStatus(ok ? "saved" : "error");
+      setTimeout(() => setSaveStatus(""), 2000);
+    }, 800);
+    return () => clearTimeout(t);
   }, [chars, dbLoading]);
 
-  const deleteChar = (id) => {
-    const remaining = chars.filter(x => x.id !== id);
-    if (remaining.length === 0) {
-      const nc = {...emptyChar(), id: Date.now(), name: "Новый персонаж"};
-      setChars([nc]); setActiveId(nc.id);
-    } else {
-      setChars(remaining);
-      setActiveId(remaining[0].id);
-    }
-  };
-
-  const [activeId, setActiveId] = useState(1);
-  const [tab, setTab] = useState("profile");
-  const [analysisGroup, setAnalysisGroup] = useState(Object.keys(ANALYSTS_GROUPS)[0]);
-  const [selectedAnalysts, setSelectedAnalysts] = useState(ALL_ANALYSTS.map(a=>a.id));
-  const [loadingAnalysts, setLoadingAnalysts] = useState({});
-  const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
-  const [forecastType, setForecastType] = useState("quick");
-  const [forecastSituations, setForecastSituations] = useState([]);
-  const [forecastStress, setForecastStress] = useState("medium");
-  const [forecastTriggers, setForecastTriggers] = useState(false);
-  const [forecastTriggersText, setForecastTriggersText] = useState("");
-  const [forecastMask, setForecastMask] = useState(true);
-  const [forecastCustom, setForecastCustom] = useState("");
-  const [forecastResult, setForecastResult] = useState("");
-  const [forecastLoading, setForecastLoading] = useState(false);
-  const [showBio, setShowBio] = useState(false);
-  const [showSave, setShowSave] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [dynCharA, setDynCharA] = useState(null);
-  const [dynCharB, setDynCharB] = useState(null);
-  const [dynAspects, setDynAspects] = useState(["attraction","conflict","power","wounds","growth","shadow","future"]);
-  const [dynResult, setDynResult] = useState({});
-  const [dynLoading, setDynLoading] = useState({});
-  const [chatHistories, setChatHistories] = useState({});
-
-  const fileInputRef = useRef();
-  const chatEndRef = useRef();
-
-  const char = chars.find(c=>c.id===activeId);
-  const updateChar = (fields) => setChars(cs=>cs.map(c=>c.id===activeId?{...c,...fields}:c));
+  const char = chars.find(c => c.id === activeId);
+  const updateChar = (fields) => setChars(cs => cs.map(c => c.id === activeId ? { ...c, ...fields } : c));
 
   const switchChar = (id) => {
-    setChatHistories(h=>({...h,[activeId]:chatMessages}));
+    setChatHistories(h => ({ ...h, [activeId]: chatMessages }));
     setActiveId(id);
-    setChatMessages(chatHistories[id]||[]);
+    setChatMessages(chatHistories[id] || []);
     setSidebarOpen(false);
   };
 
   const addChar = () => {
-    setChatHistories(h=>({...h,[activeId]:chatMessages}));
     const nc = emptyChar();
-    setChars(cs=>[...cs,nc]);
+    setChars(cs => [...cs, nc]);
     setActiveId(nc.id);
     setChatMessages([]);
     setTab("profile");
     setSidebarOpen(false);
   };
 
-  const buildSummary = (c) => `Имя: ${c.name||"Безымянный"}\nДата рождения: ${c.birthdate||"не указана"}\nПоведение: ${c.behavior||"—"}\nДетство/травмы: ${c.childhood||"—"}\nСтрах: ${c.fear||"—"}\nЖелание: ${c.desire||"—"}\nРана: ${c.wound||"—"}\nМаска: ${c.mask||"—"}`;
-
-  const ANALYST_PROMPTS = {
-    ocean: "Ты эксперт по психологии личности. Проанализируй персонажа по Большой пятёрке (OCEAN). Для каждого измерения (Открытость, Добросовестность, Экстраверсия, Доброжелательность, Нейротизм) дай оценку (Высокий/Средний/Низкий) и 2-3 предложения обоснования с примерами из профиля. Итого: какой тип личности складывается? 150-180 слов.",
-    mbti: "Ты эксперт по MBTI и юнгианским когнитивным функциям. Определи тип MBTI персонажа, назови функциональный стек (например: Ni-Fe-Ti-Se), объясни почему именно этот тип. Покажи как доминирующая и вспомогательная функции проявляются в поведении. 150-180 слов.",
-    enneagram: "Ты эксперт по эннеаграмме. Определи тип (1-9), крылья, вероятный уровень развития (здоровый/средний/нездоровый). Объясни глубинный страх и глубинное желание этого типа применительно к персонажу. Укажи направления стресса и роста. 150-180 слов.",
-    attachment: "Ты специалист по теории привязанности (Боулби, Эйнсворт, Мэйн). Определи стиль привязанности в детстве и взрослом возрасте (они могут различаться). Объясни как ранний опыт сформировал текущие паттерны в отношениях. 150-180 слов.",
-    freud: "Ты фрейдистский аналитик. Разбери Ид/Эго/Суперэго, ключевые защитные механизмы, вытесненные влечения, фиксации, эдипальную динамику. 150-180 слов.",
-    jung: "Ты юнгианский аналитик. Разбери Персону vs Самость, Тень (что вытеснено), Анима/Анимус, доминирующий архетип. Путь к индивидуации. 150-180 слов.",
-    objects: "Ты специалист по теории объектных отношений (Кляйн, Фэйрберн, Винникотт). Опиши внутренние объекты персонажа: какие образы значимых людей живут в его психике, расщепление на хороший/плохой объект, переходные объекты. 150-180 слов.",
-    ifs: "Ты терапевт IFS (Internal Family Systems, Шварц). Опиши систему частей персонажа: какие Менеджеры (контролирующие защиты), какие Пожарники (реактивные защиты в кризисе), какие Изгнанники (раненые части). Что несёт его Сущность? 150-180 слов.",
-    defenses: "Ты психоаналитик. Составь детальный разбор защитных механизмов персонажа: перечисли все выявленные механизмы, объясни как каждый проявляется в его поведении, и какие ситуации их активируют. 150-180 слов.",
-    erikson: "Ты специалист по эпигенетической теории Эриксона. Проанализируй все 8 стадий развития применительно к персонажу: какие успешно пройдены, на какой он застрял, какой кризис не был разрешён. Какую задачу развития он сейчас пытается решить? 150-180 слов.",
-    campbell: "Ты эксперт по мономифу Джозефа Кэмпбелла. Определи где персонаж находится на пути героя сейчас: обычный мир, призыв, отказ от призыва, наставник, порог, испытания, испытание бездной, трансформация, возвращение. Что для него является Святым Граалем и Отцом? 150-180 слов.",
-    character: "Ты клинический психолог. Проведи характерологический анализ по Личко и Леонгарду. Определи тип акцентуации (эпилептоидный, истероидный, шизоидный, параноидный, циклоидный и т.д.), обоснуй через поведение. Как акцентуация проявляется в стрессе и комфорте? 150-180 слов.",
-    trauma: "Ты травматерапевт. Составь травматический профиль: тип травм (простая, сложная, развитийная, реляционная), диссоциативные паттерны, повторяющиеся сценарии которые персонаж воссоздаёт. Как травма управляет его жизнью? 150-180 слов.",
-    natal: "Ты психологический астролог. Используя дату рождения персонажа (если есть), дай психологическую интерпретацию натальной карты: Солнце (эго-идентичность), Луна (бессознательное и эмоциональные нужды), Асцендент (маска/фасад). Если дата не указана — интерпретируй метафорически по характеру. 150-180 слов.",
-    shadow: "Ты специалист по теневой работе (Юнг, Роберт Джонсон). Опиши Тень персонажа подробно: что именно он отрицает в себе, на кого проецирует нежелательные качества, чего боится увидеть. Что Тень пытается ему сказать? Какой дар скрыт в Тени? 150-180 слов.",
-    existential: "Ты экзистенциальный аналитик (Ялом, Хайдеггер, Сартр). Разбери четыре данности: отношение к смерти, к свободе (и ответственности), к экзистенциальному одиночеству, к смыслу/бессмысленности. Как персонаж справляется с каждой? 150-180 слов.",
-    narrative: "Ты нарративный терапевт (Уайт, Эпстон). Какой доминирующий нарратив управляет жизнью персонажа? Какие события отбираются для подтверждения этой истории? Что остаётся за кадром? Какая альтернативная история была бы возможна? 150-180 слов.",
-    kafka: "Ты кафкиановед. Разбери отчуждение, абсурдную власть, невозможность быть понятым, вину без преступления. Как кафкианский ужас воплощён в этом персонаже? 150-180 слов.",
-    spielrein: "Ты аналитик по Шпильрейн. Деструктивное влечение как источник трансформации. Что должно умереть в персонаже чтобы он возродился? 150-180 слов.",
-    triggers: "Ты психолог-практик. Составь конкретный список триггеров персонажа: ситуации, слова, типы людей, темы, которые активируют его защиты, гнев, страх или разрушение. Для каждого триггера — что именно происходит внутри и снаружи. 150-180 слов.",
-    strengths: "Ты позитивный психолог. Опиши сильные стороны и суперсилу персонажа: что он делает лучше других, какие качества являются его ресурсом. Как его раны парадоксально питают его силу? 150-180 слов.",
-    disorders: "Ты клинический психолог (описывай мягко, без диагнозов). Опиши устойчивые личностные паттерны: нарциссические черты, пограничные, параноидные, шизоидные, гистрионные — те что реально присутствуют. Как они проявляются в отношениях? 150-180 слов.",
-    growth: "Ты интегративный психотерапевт. Опиши потенциал роста персонажа: что нужно исцелить, какой вид терапии подошёл бы (психоанализ, IFS, гештальт, соматика, EMDR...), какой терапевт как личность. Конкретные шаги к психологическому здоровью. 150-180 слов.",
-    relations: "Ты специалист по психологии отношений. Разбери паттерны персонажа в любви (выбор партнёра, близость, конфликты), дружбе (глубина, предательство, лояльность) и иерархиях власти (подчинение, доминирование, бунт). 150-180 слов.",
+  const deleteChar = (id) => {
+    const remaining = chars.filter(x => x.id !== id);
+    if (remaining.length === 0) {
+      const nc = { ...emptyChar(), name: "Новый персонаж" };
+      setChars([nc]); setActiveId(nc.id);
+    } else {
+      setChars(remaining);
+      if (activeId === id) setActiveId(remaining[0].id);
+    }
+    try { localStorage.removeItem(`psyche_img_${id}`); } catch {}
   };
+
+  const buildSummary = (c) =>
+    `Имя: ${c.name || "Безымянный"}\nДата рождения: ${c.birthdate || "—"}\nПоведение: ${c.behavior || "—"}\nДетство/травмы: ${c.childhood || "—"}\nСтрах: ${c.fear || "—"}\nЖелание: ${c.desire || "—"}\nРана: ${c.wound || "—"}\nМаска: ${c.mask || "—"}`;
 
   const analyzeAll = async () => {
-    if (!char.name && !char.behavior) return;
+    if (!char) return;
     const summary = buildSummary(char);
-    const toAnalyze = ALL_ANALYSTS.filter(a => selectedAnalysts.includes(a.id));
-    const newLoading = Object.fromEntries(toAnalyze.map(a => [a.id, true]));
-    setLoadingAnalysts(newLoading);
+    const groupAnalysts = ANALYSTS_GROUPS[analysisGroup] || [];
+    const toRun = groupAnalysts.filter(a => selectedAnalysts.includes(a.id));
+    if (toRun.length === 0) return;
 
-    // Sequential to avoid rate limits completely
-    for (const analyst of toAnalyze) {
+    setLoadingAnalysts(Object.fromEntries(toRun.map(a => [a.id, true])));
+
+    for (const analyst of toRun) {
       try {
-        const d = await fetchWithRetry({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1000,
-          system: `${ANALYST_PROMPTS[analyst.id]}\n\nОтвечай только на русском. Без markdown — только чистый текст.`,
-          messages: [{ role: "user", content: `Профиль:\n${summary}` }],
-        });
-
-        let resultText;
-        if (d?.error) {
-          resultText = `Ошибка API: ${d.error.message}`;
-        } else if (!d?.content?.[0]?.text) {
-          resultText = "Нет ответа от модели";
-        } else {
-          resultText = d.content[0].text;
-        }
-
-        setLoadingAnalysts(prev => ({...prev, [analyst.id]: false}));
-        setChars(cs => cs.map(c => c.id === activeId
-          ? {...c, analyses: {...(c.analyses||{}), [analyst.id]: resultText}}
-          : c
-        ));
-      } catch(e) {
-        setLoadingAnalysts(prev => ({...prev, [analyst.id]: false}));
-        setChars(cs => cs.map(c => c.id === activeId
-          ? {...c, analyses: {...(c.analyses||{}), [analyst.id]: `Ошибка: ${e.message}`}}
-          : c
-        ));
+        const text = await callClaude(
+          `${ANALYST_PROMPTS[analyst.id]}\n\nОтвечай только на русском. Без markdown — только чистый текст.`,
+          `Профиль:\n${summary}`,
+          1000
+        );
+        setChars(cs => cs.map(c => c.id === activeId ? { ...c, analyses: { ...(c.analyses || {}), [analyst.id]: text } } : c));
+      } catch (e) {
+        setChars(cs => cs.map(c => c.id === activeId ? { ...c, analyses: { ...(c.analyses || {}), [analyst.id]: `Ошибка: ${e.message}` } } : c));
       }
-
-      // Small delay between requests to avoid rate limits
-      await new Promise(r => setTimeout(r, 300));
+      setLoadingAnalysts(prev => ({ ...prev, [analyst.id]: false }));
+      await new Promise(r => setTimeout(r, 400));
     }
   };
-
-  const sendChat = async () => {
-    if (!chatInput.trim() || chatLoading) return;
-    const msg = chatInput.trim(); setChatInput("");
-    const newMsgs = [...chatMessages, {role:"user",content:msg}];
-    setChatMessages(newMsgs); setChatLoading(true);
-
-    const apiMsgs = [];
-    for (const m of newMsgs) {
-      if (m.role !== "user" && m.role !== "assistant") continue;
-      if (apiMsgs.length > 0 && apiMsgs[apiMsgs.length-1].role === m.role)
-        apiMsgs[apiMsgs.length-1].content += "\n" + m.content;
-      else apiMsgs.push({role:m.role, content:m.content});
-    }
-
-    try {
-      const d = await fetchWithRetry({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1000,
-        system: `Ты персонаж ${char.name||"Безымянный"}. Профиль:\n${buildSummary(char)}\n\nОтвечай от 1-го лица. ОБЯЗАТЕЛЬНО описывай физические детали: взгляд, жест, поза, дыхание — оформляй *курсивом со звёздочками*. После реплики поставь "---" и 2-3 предложения нарратора-психолога. Только русский.`,
-        messages: apiMsgs,
-      });
-      if (d?.error) throw new Error(d.error.message);
-      setChatMessages([...newMsgs, {role:"assistant", content:d?.content?.[0]?.text||"..."}]);
-    } catch(e) {
-      setChatMessages([...newMsgs, {role:"assistant", content:`Ошибка: ${e.message}`}]);
-    }
-    setChatLoading(false);
-    setTimeout(() => chatEndRef.current?.scrollIntoView({behavior:"smooth"}), 100);
-  };
-
-  const renderChatMsg = (content) => content.split(/(\*[^*]+\*)/g).map((p,i) => {
-    if (p.startsWith("*") && p.endsWith("*")) return <em key={i} style={{color:G.accent,fontStyle:"italic"}}>{p.slice(1,-1)}</em>;
-    return <span key={i}>{p}</span>;
-  });
-
-  const FORECAST_SITUATIONS = [
-    {id:"conflict",label:"Конфликт / предательство"},{id:"success",label:"Успех и признание"},
-    {id:"failure",label:"Провал / унижение"},{id:"temptation",label:"Соблазн / искушение"},
-    {id:"loss",label:"Потеря близкого"},{id:"power",label:"Власть и ответственность"},
-    {id:"love",label:"Любовь / близость"},{id:"trauma",label:"Столкновение с травмой"},
-    {id:"moral",label:"Моральный выбор"},{id:"extreme",label:"Экстремальная ситуация"},
-  ];
 
   const DYN_ASPECTS = [
-    {id:"attraction", icon:"✦", label:"Притяжение и химия", prompt:"Опиши психологическую природу притяжения между персонажами: что именно привлекает их друг в друге на уровне бессознательного, какие части психики откликаются, есть ли проективная идентификация."},
-    {id:"conflict", icon:"⚔️", label:"Конфликт и трение", prompt:"Опиши основные точки конфликта: какие ценности, страхи и паттерны сталкиваются. Как они провоцируют друг друга? Что является главным полем боя между ними?"},
-    {id:"power", icon:"👑", label:"Власть и иерархия", prompt:"Проанализируй динамику власти: кто доминирует явно и скрыто, как перераспределяется контроль в разных ситуациях, есть ли токсичные паттерны власти."},
-    {id:"wounds", icon:"💔", label:"Ранящие паттерны", prompt:"Опиши как их раны взаимодействуют: какие травмы персонажей резонируют, усиливают или эксплуатируют друг друга. Какие старые раны они активируют один у другого?"},
-    {id:"growth", icon:"🌿", label:"Рост и исцеление", prompt:"Как эти отношения могут способствовать росту каждого? Что каждый может исцелить или развить через взаимодействие с другим? Каков потенциал трансформации?"},
-    {id:"shadow", icon:"🖤", label:"Теневая динамика", prompt:"Что каждый проецирует на другого (юнгианская проекция/Тень)? Что в другом раздражает — и что это говорит о скрытом в себе? Как их Тени взаимодействуют?"},
-    {id:"future", icon:"🔮", label:"Вероятное будущее", prompt:"Спрогнозируй три возможных сценария развития отношений: токсичный/разрушительный, нейтральный/паузный, и трансформационный/исцеляющий. Что нужно чтобы попасть в каждый?"},
-    {id:"archetype", icon:"🌙", label:"Архетипическая пара", prompt:"Опиши их как архетипическую пару: какой миф или архетип они воплощают вместе (Орфей и Эвридика, Гермиона и Рон, Хищник и Жертва, Учитель и Ученик, Зеркало и Отражение и т.д.)? Что это говорит об их судьбе?"},
-    {id:"communication", icon:"💬", label:"Язык и коммуникация", prompt:"Как они общаются: совпадают ли их языки любви и конфликта, есть ли хронические недопонимания, паттерны избегания или слияния в коммуникации?"},
+    { id: "attraction", icon: "✦", label: "Притяжение и химия", prompt: "Опиши психологическую природу притяжения между персонажами на уровне бессознательного." },
+    { id: "conflict", icon: "⚔️", label: "Конфликт и трение", prompt: "Опиши основные точки конфликта: какие ценности, страхи и паттерны сталкиваются." },
+    { id: "power", icon: "👑", label: "Власть и иерархия", prompt: "Проанализируй динамику власти: кто доминирует явно и скрыто." },
+    { id: "wounds", icon: "💔", label: "Ранящие паттерны", prompt: "Как их раны взаимодействуют, усиливают или эксплуатируют друг друга?" },
+    { id: "growth", icon: "🌿", label: "Рост и исцеление", prompt: "Как эти отношения могут способствовать росту каждого?" },
+    { id: "shadow", icon: "🖤", label: "Теневая динамика", prompt: "Что каждый проецирует на другого? Как их Тени взаимодействуют?" },
+    { id: "future", icon: "🔮", label: "Вероятное будущее", prompt: "Три сценария: токсичный, нейтральный и трансформационный." },
+    { id: "archetype", icon: "🌙", label: "Архетипическая пара", prompt: "Какой миф или архетип они воплощают вместе?" },
+    { id: "communication", icon: "💬", label: "Коммуникация", prompt: "Как они общаются, есть ли хронические недопонимания?" },
   ];
 
   const runDynamics = async (aspectId) => {
@@ -637,23 +842,18 @@ export default function PsycheApp({ session }) {
     const aspect = DYN_ASPECTS.find(x => x.id === aspectId);
     if (!aspect) return;
 
-    setDynLoading(p => ({...p, [aspectId]: true}));
-    const aSum = buildSummary(a) + (Object.entries(a.analyses||{}).length > 0 ? `\n\nАнализы ${a.name}:\n` + Object.entries(a.analyses).map(([id,t]) => { const an=ALL_ANALYSTS.find(x=>x.id===id); return an?`[${an.name}]: ${t}`:""}).join("\n") : "");
-    const bSum = buildSummary(b) + (Object.entries(b.analyses||{}).length > 0 ? `\n\nАнализы ${b.name}:\n` + Object.entries(b.analyses).map(([id,t]) => { const an=ALL_ANALYSTS.find(x=>x.id===id); return an?`[${an.name}]: ${t}`:""}).join("\n") : "");
-
+    setDynLoading(p => ({ ...p, [aspectId]: true }));
     try {
-      const d = await fetchWithRetry({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1000,
-        system: `Ты эксперт по психологии отношений, психоанализу и нарративному анализу. Тебе даны два психологических профиля персонажей. ${aspect.prompt}\n\nПиши глубоко, конкретно, опирайся на данные профилей. 200-250 слов. Только русский. Без markdown.`,
-        messages: [{role:"user", content:`ПЕРСОНАЖ А — ${a.name}:\n${aSum}\n\n${"─".repeat(40)}\n\nПЕРСОНАЖ Б — ${b.name}:\n${bSum}`}],
-      });
-      if (d?.error) throw new Error(d.error.message);
-      setDynResult(p => ({...p, [aspectId]: d?.content?.[0]?.text || "Нет ответа"}));
-    } catch(e) {
-      setDynResult(p => ({...p, [aspectId]: `Ошибка: ${e.message}`}));
+      const text = await callClaude(
+        `Ты эксперт по психологии отношений. ${aspect.prompt}\n\nПиши глубоко, конкретно, опирайся на профили. 200-250 слов. Только русский. Без markdown.`,
+        `ПЕРСОНАЖ А — ${a.name}:\n${buildSummary(a)}\n\n────────────────────────\n\nПЕРСОНАЖ Б — ${b.name}:\n${buildSummary(b)}`,
+        1000
+      );
+      setDynResult(p => ({ ...p, [aspectId]: text }));
+    } catch (e) {
+      setDynResult(p => ({ ...p, [aspectId]: `Ошибка: ${e.message}` }));
     }
-    setDynLoading(p => ({...p, [aspectId]: false}));
+    setDynLoading(p => ({ ...p, [aspectId]: false }));
   };
 
   const runAllDynamics = async () => {
@@ -663,63 +863,88 @@ export default function PsycheApp({ session }) {
   };
 
   const runForecast = async () => {
-    const summary = buildSummary(char);
-    const allAnalyses = Object.entries(char.analyses||{}).map(([id,t]) => {const a=ALL_ANALYSTS.find(x=>x.id===id);return a?`[${a.name}]: ${t}`:""}).join("\n");
-    const sel = FORECAST_SITUATIONS.filter(s => forecastSituations.includes(s.id));
-    const defs = {quick:["conflict","success","failure","loss","moral"],deep:["trauma","moral"],crisis:["extreme","failure","conflict"],daily:["love","power","success"],relations:["love","conflict","temptation"]};
-    const situations = forecastType === "custom" ? forecastCustom : (sel.length > 0 ? sel.map(s=>s.label) : FORECAST_SITUATIONS.filter(s=>(defs[forecastType]||defs.quick).includes(s.id)).map(s=>s.label)).join("\n");
+    if (!char) return;
     setForecastLoading(true); setForecastResult("");
+    const SITUATIONS = {
+      quick: "Конфликт, успех, провал, потеря близкого, моральный выбор",
+      deep: "Столкновение с травмой, моральный выбор",
+      crisis: "Экстремальная ситуация, провал, конфликт",
+      daily: "Любовь/близость, власть, успех",
+      relations: "Любовь, конфликт, соблазн",
+    };
     try {
-      const d = await fetchWithRetry({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1200,
-        system: "Ты эксперт по психоанализу и поведенческому моделированию. Для каждой ситуации:\n1. Эмоциональная реакция\n2. Защитные механизмы\n3. Маска vs Тень\n4. Вероятные действия\n5. Долгосрочные последствия\nТолько русский. Без markdown.",
-        messages: [{role:"user", content:`Профиль:\n${summary}\n\nАнализы:${allAnalyses||" нет"}\nСтресс: ${{low:"Низкий",medium:"Средний",high:"Высокий",critical:"Критический"}[forecastStress]}\n${forecastTriggers?`Триггеры: ${forecastTriggersText||"да"}`:""}${forecastMask?"\nУчитывай Маску и Тень":""}\n\nСитуации:\n${situations}`}],
-      });
-      if (d?.error) throw new Error(d.error.message);
-      setForecastResult(d?.content?.[0]?.text || "Нет ответа");
-    } catch(e) {
-      setForecastResult(`Ошибка: ${e.message}`);
-    }
+      const text = await callClaude(
+        "Ты эксперт по психоанализу. Для каждой ситуации опиши: эмоциональная реакция, защитные механизмы, маска vs тень, вероятные действия, последствия. Только русский. Без markdown.",
+        `Профиль:\n${buildSummary(char)}\n\nСитуации:\n${SITUATIONS[forecastType] || SITUATIONS.quick}`,
+        1200
+      );
+      setForecastResult(text);
+    } catch (e) { setForecastResult(`Ошибка: ${e.message}`); }
     setForecastLoading(false);
   };
 
-  const Field = ({label, value, onChange, rows, placeholder}) => (
+  const sendChat = async () => {
+    if (!chatInput.trim() || chatLoading || !char) return;
+    const msg = chatInput.trim(); setChatInput("");
+    const newMsgs = [...chatMessages, { role: "user", content: msg }];
+    setChatMessages(newMsgs); setChatLoading(true);
+
+    const apiMsgs = [];
+    for (const m of newMsgs) {
+      if (m.role !== "user" && m.role !== "assistant") continue;
+      if (apiMsgs.length > 0 && apiMsgs[apiMsgs.length - 1].role === m.role)
+        apiMsgs[apiMsgs.length - 1].content += "\n" + m.content;
+      else apiMsgs.push({ role: m.role, content: m.content });
+    }
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          system: `Ты персонаж ${char.name || "Безымянный"}. Профиль:\n${buildSummary(char)}\n\nОтвечай от 1-го лица. Физические детали — *курсивом со звёздочками*. После реплики поставь "---" и 2-3 предложения нарратора-психолога. Только русский.`,
+          messages: apiMsgs,
+        }),
+      });
+      const d = await res.json();
+      if (d.error) throw new Error(d.error.message);
+      setChatMessages([...newMsgs, { role: "assistant", content: d.content?.[0]?.text || "..." }]);
+    } catch (e) {
+      setChatMessages([...newMsgs, { role: "assistant", content: `Ошибка: ${e.message}` }]);
+    }
+    setChatLoading(false);
+    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+  };
+
+  const renderChatMsg = (content) => content.split(/(\*[^*]+\*)/g).map((p, i) => {
+    if (p.startsWith("*") && p.endsWith("*")) return <em key={i} style={{ color: G.accent, fontStyle: "italic" }}>{p.slice(1, -1)}</em>;
+    return <span key={i}>{p}</span>;
+  });
+
+  const Field = ({ label, value, onChange, rows, placeholder }) => (
     <div>
-      <div style={{fontSize:10,color:G.textDim,marginBottom:5,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.1em"}}>{label}</div>
-      {rows ? (
-        <textarea value={value} onChange={e=>onChange(e.target.value)} rows={rows} placeholder={placeholder}
-          style={{width:"100%",background:G.bg,border:`0.5px solid ${G.border}`,borderRadius:8,padding:"8px 11px",fontSize:13,fontFamily:"inherit",lineHeight:1.6,resize:"vertical",color:G.text,outline:"none",boxSizing:"border-box"}}
-          onFocus={e=>e.target.style.borderColor=G.accentDim} onBlur={e=>e.target.style.borderColor=G.border}/>
-      ) : (
-        <input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
-          style={{width:"100%",background:G.bg,border:`0.5px solid ${G.border}`,borderRadius:8,padding:"8px 11px",fontSize:13,fontFamily:"inherit",color:G.text,outline:"none",boxSizing:"border-box"}}
-          onFocus={e=>e.target.style.borderColor=G.accentDim} onBlur={e=>e.target.style.borderColor=G.border}/>
-      )}
+      <div style={{ fontSize: 10, color: G.textDim, marginBottom: 5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>{label}</div>
+      {rows
+        ? <textarea value={value} onChange={e => onChange(e.target.value)} rows={rows} placeholder={placeholder} style={{ width: "100%", background: G.bg, border: `0.5px solid ${G.border}`, borderRadius: 8, padding: "8px 11px", fontSize: 13, fontFamily: "inherit", lineHeight: 1.6, resize: "vertical", color: G.text, outline: "none", boxSizing: "border-box" }} onFocus={e => e.target.style.borderColor = G.accentDim} onBlur={e => e.target.style.borderColor = G.border} />
+        : <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={{ width: "100%", background: G.bg, border: `0.5px solid ${G.border}`, borderRadius: 8, padding: "8px 11px", fontSize: 13, fontFamily: "inherit", color: G.text, outline: "none", boxSizing: "border-box" }} onFocus={e => e.target.style.borderColor = G.accentDim} onBlur={e => e.target.style.borderColor = G.border} />
+      }
     </div>
   );
 
-  const tabs = [
-    {id:"profile",label:"Профиль"},
-    {id:"analysis",label:"Анализ"},
-    {id:"forecast",label:"🔮"},
-    {id:"dynamics",label:"⚭"},
-    {id:"chat",label:"Диалог"},
-  ];
+  const isLoading = Object.values(loadingAnalysts).some(v => v);
+  const groupAnalysts = ANALYSTS_GROUPS[analysisGroup] || [];
 
-  const isLoading = Object.values(loadingAnalysts).some(v=>v);
-  const groupAnalysts = ANALYSTS_GROUPS[analysisGroup]||[];
-
-  if (dbLoading) return (
-    <div style={{minHeight:"100vh",background:G.bg,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
-      <div style={{fontFamily:"Georgia,serif",fontSize:28,color:G.accent,letterSpacing:"0.2em",animation:"pulse 2s ease-in-out infinite"}}>✦</div>
-      <div style={{fontSize:13,color:G.textDim}}>Загружаю ваших персонажей...</div>
+  if (dbLoading || !char) return (
+    <div style={{ minHeight: "100vh", background: G.bg, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
+      <div style={{ fontFamily: "Georgia,serif", fontSize: 28, color: G.accent, animation: "pulse 2s ease-in-out infinite" }}>✦</div>
       <style>{`@keyframes pulse{0%,100%{opacity:0.3}50%{opacity:1}}`}</style>
     </div>
   );
 
   return (
-    <div style={{fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',Georgia,sans-serif",minHeight:"100vh",background:G.bg,color:G.text,display:"flex",flexDirection:"column"}}>
+    <div style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Georgia,sans-serif", minHeight: "100vh", background: G.bg, color: G.text, display: "flex", flexDirection: "column" }}>
       <style>{`
         @keyframes pulse{0%,100%{opacity:0.25}50%{opacity:1}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
@@ -728,401 +953,316 @@ export default function PsycheApp({ session }) {
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:${G.border};border-radius:2px}
         textarea,input{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Georgia,sans-serif}
-        .hover-accent:hover{color:${G.accent}!important;border-color:${G.accentDim}!important}
-
-        /* ── MOBILE ── */
+        .hov:hover{color:${G.accent}!important;border-color:${G.accentDim}!important}
         @media(max-width:600px){
           .desktop-sidebar{display:none!important}
-          .mobile-menu{display:flex!important}
-          .topbar-export{display:none!important}
-          .tab-label-full{display:none}
-          .tab-label-short{display:inline}
-          .profile-grid{grid-template-columns:1fr!important}
-          .analysis-grid{grid-template-columns:1fr!important}
-          .forecast-grid{grid-template-columns:1fr!important}
-          .dyn-grid{grid-template-columns:1fr!important}
+          .mob-menu{display:flex!important}
           .hide-mobile{display:none!important}
-          .chat-msg-user{max-width:90%!important}
-          .chat-msg-assistant{max-width:95%!important}
-          .main-pad{padding:16px!important}
+          .profile-grid{grid-template-columns:1fr!important}
+          .tab-full{display:none}
+          .tab-icon{display:inline}
+          .main-pad{padding:14px!important}
         }
         @media(min-width:601px){
-          .mobile-sidebar-overlay{display:none!important}
-          .tab-label-short{display:none}
+          .mob-overlay{display:none!important}
+          .mob-menu{display:none!important}
+          .tab-icon{display:none}
         }
       `}</style>
 
-      {/* MOBILE SIDEBAR OVERLAY */}
+      {/* MOBILE OVERLAY */}
       {sidebarOpen && (
-        <div className="mobile-sidebar-overlay" style={{position:"fixed",inset:0,zIndex:200,display:"flex"}} onClick={()=>setSidebarOpen(false)}>
-          <div style={{width:220,background:G.surface,borderRight:`0.5px solid ${G.border}`,display:"flex",flexDirection:"column",padding:"12px 8px",gap:4,overflowY:"auto",zIndex:201}} onClick={e=>e.stopPropagation()}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"4px 8px 12px"}}>
-              <div style={{fontSize:9,color:G.textDim,textTransform:"uppercase",letterSpacing:"0.15em",fontWeight:600}}>Персонажи</div>
-              <button onClick={()=>setSidebarOpen(false)} style={{background:"none",border:"none",color:G.textDim,fontSize:18,cursor:"pointer",padding:0,lineHeight:1}}>×</button>
+        <div className="mob-overlay" style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex" }} onClick={() => setSidebarOpen(false)}>
+          <div style={{ width: 220, background: G.surface, borderRight: `0.5px solid ${G.border}`, display: "flex", flexDirection: "column", padding: "12px 8px", gap: 4, overflowY: "auto" }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 8px 12px" }}>
+              <div style={{ fontSize: 9, color: G.textDim, textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 600 }}>Персонажи</div>
+              <button onClick={() => setSidebarOpen(false)} style={{ background: "none", border: "none", color: G.textDim, fontSize: 18, cursor: "pointer" }}>×</button>
             </div>
-            {chars.map(c=>(
-              <div key={c.id} style={{display:"flex",alignItems:"center",borderRadius:8,border:`0.5px solid ${c.id===activeId?G.borderLight:"transparent"}`,background:c.id===activeId?G.surfaceAlt:"transparent",transition:"all 0.15s",overflow:"hidden"}}>
-                <div onClick={()=>switchChar(c.id)} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",flex:1,cursor:"pointer",minWidth:0}}>
-                  <Avatar char={c} size={28}/>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:12,fontWeight:500,color:c.id===activeId?G.accent:G.textMid,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name||"Безымянный"}</div>
-                    {c.analyses&&Object.keys(c.analyses).length>0&&<div style={{fontSize:9,color:G.textDim,marginTop:1}}>✦ {Object.keys(c.analyses).length} анализов</div>}
+            {chars.map(c => (
+              <div key={c.id} style={{ display: "flex", alignItems: "center", borderRadius: 8, border: `0.5px solid ${c.id === activeId ? G.borderLight : "transparent"}`, background: c.id === activeId ? G.surfaceAlt : "transparent" }}>
+                <div onClick={() => switchChar(c.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", flex: 1, cursor: "pointer", minWidth: 0 }}>
+                  <Avatar char={c} size={28} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 500, color: c.id === activeId ? G.accent : G.textMid, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name || "Безымянный"}</div>
                   </div>
                 </div>
-                {chars.length>1&&<button onClick={()=>{if(window.confirm(`Удалить «${c.name||"персонажа"}»?`))deleteChar(c.id)}} style={{background:"none",border:"none",color:G.textDim,cursor:"pointer",fontSize:14,padding:"4px 8px",opacity:0.35,flexShrink:0}} title="Удалить">×</button>}
+                {chars.length > 1 && <button onClick={() => { if (window.confirm(`Удалить «${c.name}»?`)) deleteChar(c.id); }} style={{ background: "none", border: "none", color: G.textDim, cursor: "pointer", fontSize: 14, padding: "4px 8px", opacity: 0.4 }}>×</button>}
               </div>
             ))}
-            <button onClick={addChar} style={{marginTop:8,padding:"7px",background:"none",border:`0.5px dashed ${G.border}`,borderRadius:8,fontSize:12,color:G.textDim,cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}} className="hover-accent">＋ Новый</button>
+            <button onClick={addChar} style={{ marginTop: 8, padding: "7px", background: "none", border: `0.5px dashed ${G.border}`, borderRadius: 8, fontSize: 12, color: G.textDim, cursor: "pointer", fontFamily: "inherit" }}>＋ Новый</button>
           </div>
-          <div style={{flex:1,background:"rgba(0,0,0,0.5)"}}/>
+          <div style={{ flex: 1, background: "rgba(0,0,0,0.5)" }} />
         </div>
       )}
 
       {/* TOP BAR */}
-      <div style={{background:G.surface,borderBottom:`0.5px solid ${G.border}`,display:"flex",alignItems:"center",padding:"0 12px",height:50,gap:6,position:"sticky",top:0,zIndex:100,flexShrink:0}}>
-        <button onClick={()=>setSidebarOpen(o=>!o)} className="mobile-menu" style={{display:"none",background:"none",border:"none",color:G.textMid,fontSize:20,cursor:"pointer",padding:4,lineHeight:1,flexShrink:0}}>☰</button>
-        <div style={{fontFamily:"Georgia,serif",fontWeight:700,fontSize:15,color:G.accent,letterSpacing:"0.1em",marginRight:8,flexShrink:0}}>✦ PSYCHE</div>
-
-        <div style={{display:"flex",gap:0,flex:1,overflowX:"auto"}}>
-          {tabs.map(t=>(
-            <button key={t.id} onClick={()=>setTab(t.id)} style={{background:"none",border:"none",padding:"0 10px",height:50,fontSize:13,cursor:"pointer",color:tab===t.id?G.accent:G.textDim,borderBottom:tab===t.id?`1.5px solid ${G.accent}`:"1.5px solid transparent",whiteSpace:"nowrap",fontFamily:"inherit",letterSpacing:"0.03em",transition:"color 0.15s"}}>
-              <span className="tab-label-full">{t.label}</span>
-              <span className="tab-label-short">{t.id==="profile"?"👤":t.id==="analysis"?"🔬":t.id==="forecast"?"🔮":t.id==="dynamics"?"⚭":"💬"}</span>
+      <div style={{ background: G.surface, borderBottom: `0.5px solid ${G.border}`, display: "flex", alignItems: "center", padding: "0 12px", height: 50, gap: 6, position: "sticky", top: 0, zIndex: 100, flexShrink: 0 }}>
+        <button className="mob-menu" onClick={() => setSidebarOpen(o => !o)} style={{ background: "none", border: "none", color: G.textMid, fontSize: 20, cursor: "pointer", padding: 4, lineHeight: 1, flexShrink: 0 }}>☰</button>
+        <div style={{ fontFamily: "Georgia,serif", fontWeight: 700, fontSize: 15, color: G.accent, letterSpacing: "0.1em", marginRight: 8, flexShrink: 0 }}>✦ PSYCHE</div>
+        <div style={{ display: "flex", gap: 0, flex: 1, overflowX: "auto" }}>
+          {[
+            { id: "profile", full: "Профиль", icon: "👤" },
+            { id: "analysis", full: "Анализ", icon: "🔬" },
+            { id: "forecast", full: "Прогноз", icon: "🔮" },
+            { id: "dynamics", full: "Динамика", icon: "⚭" },
+            { id: "chat", full: "Диалог", icon: "💬" },
+          ].map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ background: "none", border: "none", padding: "0 10px", height: 50, fontSize: 13, cursor: "pointer", color: tab === t.id ? G.accent : G.textDim, borderBottom: tab === t.id ? `1.5px solid ${G.accent}` : "1.5px solid transparent", whiteSpace: "nowrap", fontFamily: "inherit", transition: "color 0.15s" }}>
+              <span className="tab-full">{t.full}</span>
+              <span className="tab-icon">{t.icon}</span>
             </button>
           ))}
         </div>
-
-        <button onClick={()=>setShowSave(true)} className="topbar-export" style={{background:"none",border:`0.5px solid ${G.border}`,borderRadius:7,padding:"6px 12px",fontSize:12,color:G.textMid,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>✦ Экспорт</button>
-        {saveStatus==="saved"&&<div style={{fontSize:11,color:G.green,flexShrink:0}}>✓</div>}
-        {saveStatus==="error"&&<div style={{fontSize:11,color:G.red,flexShrink:0}}>⚠</div>}
+        <button onClick={() => setShowExport(true)} style={{ background: "none", border: `0.5px solid ${G.border}`, borderRadius: 7, padding: "6px 12px", fontSize: 12, color: G.textMid, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }} className="hov">✦ Экспорт</button>
+        {saveStatus === "saved" && <div style={{ fontSize: 11, color: G.green, flexShrink: 0 }}>✓</div>}
+        {saveStatus === "error" && <div style={{ fontSize: 11, color: G.red, flexShrink: 0 }}>⚠</div>}
       </div>
 
-      <div style={{display:"flex",flex:1,overflow:"hidden"}}>
-
-        {/* SIDEBAR — desktop */}
-        <div className="desktop-sidebar" style={{width:190,background:G.surface,borderRight:`0.5px solid ${G.border}`,display:"flex",flexDirection:"column",padding:"12px 8px",gap:4,overflowY:"auto",flexShrink:0}}>
-          <div style={{fontSize:9,color:G.textDim,textTransform:"uppercase",letterSpacing:"0.15em",padding:"4px 8px 8px",fontWeight:600}}>Персонажи</div>
-          {chars.map(c=>(
-            <div key={c.id} style={{display:"flex",alignItems:"center",borderRadius:8,border:`0.5px solid ${c.id===activeId?G.borderLight:"transparent"}`,background:c.id===activeId?G.surfaceAlt:"transparent",transition:"all 0.15s",overflow:"hidden"}}>
-              <div onClick={()=>switchChar(c.id)} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",flex:1,cursor:"pointer",minWidth:0}}>
-                <Avatar char={c} size={28}/>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:12,fontWeight:500,color:c.id===activeId?G.accent:G.textMid,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name||"Безымянный"}</div>
-                  {c.analyses&&Object.keys(c.analyses).length>0&&<div style={{fontSize:9,color:G.textDim,marginTop:1}}>✦ {Object.keys(c.analyses).length} анализов</div>}
+      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        {/* DESKTOP SIDEBAR */}
+        <div className="desktop-sidebar" style={{ width: 190, background: G.surface, borderRight: `0.5px solid ${G.border}`, display: "flex", flexDirection: "column", padding: "12px 8px", gap: 4, overflowY: "auto", flexShrink: 0 }}>
+          <div style={{ fontSize: 9, color: G.textDim, textTransform: "uppercase", letterSpacing: "0.15em", padding: "4px 8px 8px", fontWeight: 600 }}>Персонажи</div>
+          {chars.map(c => (
+            <div key={c.id} style={{ display: "flex", alignItems: "center", borderRadius: 8, border: `0.5px solid ${c.id === activeId ? G.borderLight : "transparent"}`, background: c.id === activeId ? G.surfaceAlt : "transparent", overflow: "hidden" }}>
+              <div onClick={() => switchChar(c.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", flex: 1, cursor: "pointer", minWidth: 0 }}>
+                <Avatar char={c} size={28} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: c.id === activeId ? G.accent : G.textMid, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name || "Безымянный"}</div>
+                  {c.analyses && Object.keys(c.analyses).length > 0 && <div style={{ fontSize: 9, color: G.textDim }}>✦ {Object.keys(c.analyses).length} анализов</div>}
                 </div>
               </div>
-              {chars.length>1&&<button onClick={()=>{if(window.confirm(`Удалить «${c.name||"персонажа"}»?`))deleteChar(c.id)}} style={{background:"none",border:"none",color:G.textDim,cursor:"pointer",fontSize:14,padding:"4px 8px",opacity:0.35,flexShrink:0}} title="Удалить">×</button>}
+              {chars.length > 1 && <button onClick={() => { if (window.confirm(`Удалить «${c.name}»?`)) deleteChar(c.id); }} style={{ background: "none", border: "none", color: G.textDim, cursor: "pointer", fontSize: 14, padding: "4px 8px", opacity: 0.35 }}>×</button>}
             </div>
           ))}
-          <button onClick={addChar} style={{marginTop:8,padding:"7px",background:"none",border:`0.5px dashed ${G.border}`,borderRadius:8,fontSize:12,color:G.textDim,cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}} className="hover-accent">＋ Новый</button>
+          <button onClick={addChar} style={{ marginTop: 8, padding: "7px", background: "none", border: `0.5px dashed ${G.border}`, borderRadius: 8, fontSize: 12, color: G.textDim, cursor: "pointer", fontFamily: "inherit" }} className="hov">＋ Новый</button>
         </div>
 
-        {/* MAIN */}
-        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column"}}>
+        {/* MAIN CONTENT */}
+        <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
 
           {/* PROFILE */}
-          {tab==="profile" && (
-            <div className="main-pad" style={{padding:"20px 20px",maxWidth:660,display:"flex",flexDirection:"column",gap:16,animation:"fadeIn 0.3s ease"}}>
-              <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
-                <div style={{position:"relative",cursor:"pointer",flexShrink:0}} onClick={()=>fileInputRef.current.click()}>
-                  <Avatar char={char} size={64}/>
-                  <div style={{position:"absolute",bottom:0,right:0,width:20,height:20,background:G.accent,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:G.bg,fontWeight:700}}>+</div>
+          {tab === "profile" && (
+            <div className="main-pad" style={{ padding: "20px", maxWidth: 660, display: "flex", flexDirection: "column", gap: 16, animation: "fadeIn 0.3s ease" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+                <div style={{ position: "relative", cursor: "pointer", flexShrink: 0 }} onClick={() => fileInputRef.current.click()}>
+                  <Avatar char={char} size={64} />
+                  <div style={{ position: "absolute", bottom: 0, right: 0, width: 20, height: 20, background: G.accent, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: G.bg, fontWeight: 700 }}>+</div>
                 </div>
-                <input ref={fileInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>updateChar({image:ev.target.result});r.readAsDataURL(f);}}/>
-                <div style={{flex:1,minWidth:180}}>
-                  <div style={{fontSize:10,color:G.textDim,marginBottom:5,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.1em"}}>Имя персонажа</div>
-                  <input value={char.name} onChange={e=>updateChar({name:e.target.value})} placeholder="Введите имя..."
-                    style={{width:"100%",background:"none",border:"none",borderBottom:`0.5px solid ${G.border}`,padding:"4px 0",fontSize:18,fontWeight:600,color:G.text,outline:"none",fontFamily:"Georgia,serif",letterSpacing:"0.02em"}}
-                    onFocus={e=>e.target.style.borderBottomColor=G.accent} onBlur={e=>e.target.style.borderBottomColor=G.border}/>
+                <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => updateChar({ image: ev.target.result }); r.readAsDataURL(f); }} />
+                <div style={{ flex: 1, minWidth: 180 }}>
+                  <div style={{ fontSize: 10, color: G.textDim, marginBottom: 5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>Имя персонажа</div>
+                  <input value={char.name} onChange={e => updateChar({ name: e.target.value })} placeholder="Введите имя..."
+                    style={{ width: "100%", background: "none", border: "none", borderBottom: `0.5px solid ${G.border}`, padding: "4px 0", fontSize: 20, fontWeight: 600, color: G.text, outline: "none", fontFamily: "Georgia,serif" }}
+                    onFocus={e => e.target.style.borderBottomColor = G.accent} onBlur={e => e.target.style.borderBottomColor = G.border} />
                 </div>
               </div>
-
-              <Field label="Дата рождения (для натальной карты)" value={char.birthdate||""} onChange={v=>updateChar({birthdate:v})} placeholder="ДД.ММ.ГГГГ — например: 14.03.1989"/>
-              <Field label="Ключевое поведение" value={char.behavior} onChange={v=>updateChar({behavior:v})} rows={3} placeholder="Как персонаж ведёт себя? Контролирует, избегает, атакует..."/>
-
-              <div className="profile-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-                <Field label="Детство и ранние травмы" value={char.childhood} onChange={v=>updateChar({childhood:v})} rows={3} placeholder="Отец, мать, ключевые события..."/>
-                <Field label="Главный страх" value={char.fear} onChange={v=>updateChar({fear:v})} rows={3} placeholder="Чего боится больше всего?"/>
-                <Field label="Желание / цель (глубинное)" value={char.desire} onChange={v=>updateChar({desire:v})} rows={3} placeholder="Чего хочет на самом деле?"/>
-                <Field label="Психологическая рана" value={char.wound} onChange={v=>updateChar({wound:v})} rows={3} placeholder="Что сломало его в прошлом?"/>
+              <Field label="Дата рождения" value={char.birthdate || ""} onChange={v => updateChar({ birthdate: v })} placeholder="ДД.ММ.ГГГГ" />
+              <Field label="Ключевое поведение" value={char.behavior} onChange={v => updateChar({ behavior: v })} rows={3} placeholder="Как персонаж ведёт себя?" />
+              <div className="profile-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <Field label="Детство и ранние травмы" value={char.childhood} onChange={v => updateChar({ childhood: v })} rows={3} placeholder="Отец, мать, ключевые события..." />
+                <Field label="Главный страх" value={char.fear} onChange={v => updateChar({ fear: v })} rows={3} placeholder="Чего боится больше всего?" />
+                <Field label="Желание / цель" value={char.desire} onChange={v => updateChar({ desire: v })} rows={3} placeholder="Чего хочет на самом деле?" />
+                <Field label="Психологическая рана" value={char.wound} onChange={v => updateChar({ wound: v })} rows={3} placeholder="Что сломало его в прошлом?" />
               </div>
-
-              <Field label="Маска / публичный фасад" value={char.mask} onChange={v=>updateChar({mask:v})} rows={2} placeholder="Каким хочет казаться?"/>
-
-              <div style={{display:"flex",gap:10,flexWrap:"wrap",paddingTop:4}}>
-                <button onClick={()=>setTab("analysis")} style={{padding:"9px 20px",background:G.accent,border:"none",borderRadius:8,fontSize:13,color:G.bg,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>К анализу →</button>
-                <button onClick={()=>setShowBio(true)} style={{padding:"9px 16px",background:"none",border:`0.5px solid ${G.border}`,borderRadius:8,fontSize:13,color:G.textMid,cursor:"pointer",fontFamily:"inherit"}} className="hover-accent">📄 Вставить биографию</button>
-                <button onClick={()=>setShowSave(true)} style={{padding:"9px 16px",background:"none",border:`0.5px solid ${G.border}`,borderRadius:8,fontSize:13,color:G.textMid,cursor:"pointer",fontFamily:"inherit"}} className="hover-accent">💾 Экспорт</button>
+              <Field label="Маска / публичный фасад" value={char.mask} onChange={v => updateChar({ mask: v })} rows={2} placeholder="Каким хочет казаться?" />
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <button onClick={() => setTab("analysis")} style={{ padding: "9px 20px", background: G.accent, border: "none", borderRadius: 8, fontSize: 13, color: G.bg, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>К анализу →</button>
+                <button onClick={() => setShowBio(true)} style={{ padding: "9px 16px", background: "none", border: `0.5px solid ${G.border}`, borderRadius: 8, fontSize: 13, color: G.textMid, cursor: "pointer", fontFamily: "inherit" }} className="hov">📄 Вставить биографию</button>
+                <button onClick={() => setShowExport(true)} style={{ padding: "9px 16px", background: "none", border: `0.5px solid ${G.border}`, borderRadius: 8, fontSize: 13, color: G.textMid, cursor: "pointer", fontFamily: "inherit" }} className="hov">💾 Экспорт</button>
               </div>
             </div>
           )}
 
           {/* ANALYSIS */}
-          {tab==="analysis" && (
-            <div className="main-pad" style={{padding:"20px",display:"flex",flexDirection:"column",gap:16,animation:"fadeIn 0.3s ease"}}>
-              <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4}}>
-                {Object.keys(ANALYSTS_GROUPS).map(g=>(
-                  <button key={g} onClick={()=>setAnalysisGroup(g)} style={{padding:"6px 12px",borderRadius:20,border:`0.5px solid ${analysisGroup===g?G.accentDim:G.border}`,background:analysisGroup===g?G.accentSoft:"none",color:analysisGroup===g?G.accent:G.textDim,fontSize:11,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",transition:"all 0.15s"}}>{g}</button>
+          {tab === "analysis" && (
+            <div className="main-pad" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 14, animation: "fadeIn 0.3s ease" }}>
+              <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>
+                {Object.keys(ANALYSTS_GROUPS).map(g => (
+                  <button key={g} onClick={() => setAnalysisGroup(g)} style={{ padding: "6px 12px", borderRadius: 20, border: `0.5px solid ${analysisGroup === g ? G.accentDim : G.border}`, background: analysisGroup === g ? G.accentSoft : "none", color: analysisGroup === g ? G.accent : G.textDim, fontSize: 11, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>{g}</button>
                 ))}
               </div>
-
-              <div className="analysis-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:7}}>
-                {groupAnalysts.map(a=>(
-                  <div key={a.id} onClick={()=>setSelectedAnalysts(p=>p.includes(a.id)?p.filter(x=>x!==a.id):[...p,a.id])} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 11px",borderRadius:8,cursor:"pointer",border:`0.5px solid ${selectedAnalysts.includes(a.id)?G.accentDim:G.border}`,background:selectedAnalysts.includes(a.id)?G.accentSoft:"none",transition:"all 0.15s"}}>
-                    <span style={{fontSize:15}}>{a.icon}</span>
-                    <span style={{fontSize:12,fontWeight:500,color:selectedAnalysts.includes(a.id)?G.accent:G.textMid}}>{a.name}</span>
-                    {selectedAnalysts.includes(a.id)&&<span style={{marginLeft:"auto",color:G.accent,fontSize:11}}>✓</span>}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(155px,1fr))", gap: 7 }}>
+                {groupAnalysts.map(a => (
+                  <div key={a.id} onClick={() => setSelectedAnalysts(p => p.includes(a.id) ? p.filter(x => x !== a.id) : [...p, a.id])} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 11px", borderRadius: 8, cursor: "pointer", border: `0.5px solid ${selectedAnalysts.includes(a.id) ? G.accentDim : G.border}`, background: selectedAnalysts.includes(a.id) ? G.accentSoft : "none" }}>
+                    <span style={{ fontSize: 15 }}>{a.icon}</span>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: selectedAnalysts.includes(a.id) ? G.accent : G.textMid }}>{a.name}</span>
+                    {selectedAnalysts.includes(a.id) && <span style={{ marginLeft: "auto", color: G.accent, fontSize: 11 }}>✓</span>}
                   </div>
                 ))}
               </div>
-
-              <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-                <button onClick={analyzeAll} disabled={!selectedAnalysts.some(id=>groupAnalysts.find(a=>a.id===id))||isLoading||(!char.name&&!char.behavior)}
-                  style={{padding:"9px 20px",background:G.accent,border:"none",borderRadius:8,fontSize:13,color:G.bg,fontWeight:600,cursor:isLoading?"wait":"pointer",fontFamily:"inherit",opacity:isLoading?0.7:1}}>
-                  {isLoading ? `⏳ Анализирую...` : `✦ Запустить анализ (${selectedAnalysts.filter(id=>groupAnalysts.find(a=>a.id===id)).length})`}
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                <button onClick={analyzeAll} disabled={!selectedAnalysts.some(id => groupAnalysts.find(a => a.id === id)) || isLoading || (!char.name && !char.behavior)}
+                  style={{ padding: "9px 20px", background: G.accent, border: "none", borderRadius: 8, fontSize: 13, color: G.bg, fontWeight: 600, cursor: isLoading ? "wait" : "pointer", fontFamily: "inherit", opacity: isLoading ? 0.7 : 1 }}>
+                  {isLoading ? "⏳ Анализирую..." : `✦ Запустить анализ (${selectedAnalysts.filter(id => groupAnalysts.find(a => a.id === id)).length})`}
                 </button>
-                {isLoading && <span style={{fontSize:11,color:G.textDim,fontStyle:"italic"}}>анализы идут последовательно...</span>}
+                {isLoading && <span style={{ fontSize: 11, color: G.textDim, fontStyle: "italic" }}>анализы идут по очереди...</span>}
               </div>
-
-              <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                {groupAnalysts.filter(a=>selectedAnalysts.includes(a.id)).map(a=>(
-                  <AnalysisBlock key={a.id} analyst={a} text={char.analyses?.[a.id]} loading={!!loadingAnalysts[a.id]}/>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {groupAnalysts.filter(a => selectedAnalysts.includes(a.id)).map(a => (
+                  <AnalysisBlock key={a.id} analyst={a} text={char.analyses?.[a.id]} loading={!!loadingAnalysts[a.id]} />
                 ))}
               </div>
             </div>
           )}
 
           {/* FORECAST */}
-          {tab==="forecast" && (
-            <div className="main-pad" style={{padding:"20px",maxWidth:700,display:"flex",flexDirection:"column",gap:16,animation:"fadeIn 0.3s ease"}}>
-              <div style={{fontFamily:"Georgia,serif",fontSize:16,color:G.accent,letterSpacing:"0.05em"}}>🔮 Прогноз поведения</div>
-              <div className="forecast-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>
-                {[{id:"quick",l:"⚡ Быстрый"},{id:"deep",l:"🔬 Глубокий"},{id:"crisis",l:"🆘 Кризис"},{id:"daily",l:"☀️ Повседневный"},{id:"relations",l:"❤️ Отношения"},{id:"custom",l:"✏️ Свой"}].map(t=>(
-                  <div key={t.id} onClick={()=>setForecastType(t.id)} style={{padding:"10px 12px",borderRadius:9,cursor:"pointer",border:`0.5px solid ${forecastType===t.id?G.accentDim:G.border}`,background:forecastType===t.id?G.accentSoft:"none",color:forecastType===t.id?G.accent:G.textMid,fontSize:13,textAlign:"center",transition:"all 0.15s"}}>{t.l}</div>
+          {tab === "forecast" && (
+            <div className="main-pad" style={{ padding: "20px", maxWidth: 680, display: "flex", flexDirection: "column", gap: 16, animation: "fadeIn 0.3s ease" }}>
+              <div style={{ fontFamily: "Georgia,serif", fontSize: 16, color: G.accent }}>🔮 Прогноз поведения</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))", gap: 8 }}>
+                {[{ id: "quick", l: "⚡ Быстрый" }, { id: "deep", l: "🔬 Глубокий" }, { id: "crisis", l: "🆘 Кризис" }, { id: "daily", l: "☀️ Повседневный" }, { id: "relations", l: "❤️ Отношения" }].map(t => (
+                  <div key={t.id} onClick={() => setForecastType(t.id)} style={{ padding: "10px 12px", borderRadius: 9, cursor: "pointer", border: `0.5px solid ${forecastType === t.id ? G.accentDim : G.border}`, background: forecastType === t.id ? G.accentSoft : "none", color: forecastType === t.id ? G.accent : G.textMid, fontSize: 13, textAlign: "center" }}>{t.l}</div>
                 ))}
               </div>
-
-              {forecastType==="custom" ? (
-                <textarea value={forecastCustom} onChange={e=>setForecastCustom(e.target.value)} rows={4} placeholder="Опишите ситуацию своими словами..."
-                  style={{background:G.bg,border:`0.5px solid ${G.border}`,borderRadius:9,padding:"10px 13px",fontSize:13,color:G.text,fontFamily:"inherit",resize:"vertical",outline:"none"}}/>
-              ) : (
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-                  {FORECAST_SITUATIONS.map(s=>(
-                    <div key={s.id} onClick={()=>setForecastSituations(p=>p.includes(s.id)?p.filter(x=>x!==s.id):[...p,s.id])}
-                      style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",borderRadius:8,cursor:"pointer",border:`0.5px solid ${forecastSituations.includes(s.id)?G.accentDim:G.border}`,background:forecastSituations.includes(s.id)?G.accentSoft:"none",transition:"all 0.15s"}}>
-                      <div style={{width:13,height:13,borderRadius:3,border:`1.5px solid ${forecastSituations.includes(s.id)?G.accent:G.textDim}`,background:forecastSituations.includes(s.id)?G.accent:"none",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                        {forecastSituations.includes(s.id)&&<span style={{fontSize:9,color:G.bg,fontWeight:700}}>✓</span>}
-                      </div>
-                      <span style={{fontSize:12,color:forecastSituations.includes(s.id)?G.accent:G.textMid}}>{s.label}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <GothicFrame style={{padding:"14px 16px"}}>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-                  <div>
-                    <div style={{fontSize:10,color:G.textDim,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Уровень стресса</div>
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                      {[{id:"low",l:"Низкий"},{id:"medium",l:"Средний"},{id:"high",l:"Высокий"},{id:"critical",l:"Крит."}].map(x=>(
-                        <button key={x.id} onClick={()=>setForecastStress(x.id)} style={{padding:"4px 10px",borderRadius:6,border:`0.5px solid ${forecastStress===x.id?G.accentDim:G.border}`,background:forecastStress===x.id?G.accentSoft:"none",color:forecastStress===x.id?G.accent:G.textDim,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{x.l}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{fontSize:10,color:G.textDim,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Триггеры</div>
-                    <button onClick={()=>setForecastTriggers(v=>!v)} style={{padding:"4px 12px",borderRadius:6,border:`0.5px solid ${forecastTriggers?G.accentDim:G.border}`,background:forecastTriggers?G.accentSoft:"none",color:forecastTriggers?G.accent:G.textDim,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{forecastTriggers?"Да":"Нет"}</button>
-                    {forecastTriggers&&<input value={forecastTriggersText} onChange={e=>setForecastTriggersText(e.target.value)} placeholder="Какие?" style={{marginTop:6,width:"100%",background:G.bg,border:`0.5px solid ${G.border}`,borderRadius:6,padding:"5px 9px",fontSize:12,color:G.text,outline:"none",fontFamily:"inherit"}}/>}
-                  </div>
-                  <div style={{gridColumn:"1/3",display:"flex",alignItems:"center",gap:10}}>
-                    <button onClick={()=>setForecastMask(v=>!v)} style={{padding:"4px 12px",borderRadius:6,border:`0.5px solid ${forecastMask?G.accentDim:G.border}`,background:forecastMask?G.accentSoft:"none",color:forecastMask?G.accent:G.textDim,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{forecastMask?"Вкл":"Выкл"}</button>
-                    <span style={{fontSize:12,color:G.textDim}}>Учитывать Маску / Тень</span>
-                  </div>
-                </div>
-              </GothicFrame>
-
-              <button onClick={runForecast} disabled={forecastLoading||(!char.name&&!char.behavior)}
-                style={{alignSelf:"flex-start",padding:"10px 22px",background:G.accent,border:"none",borderRadius:8,fontSize:13,color:G.bg,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:forecastLoading?0.7:1}}>
-                {forecastLoading?"Генерирую...":"🔮 Создать прогноз"}
+              <button onClick={runForecast} disabled={forecastLoading || (!char.name && !char.behavior)}
+                style={{ alignSelf: "flex-start", padding: "10px 22px", background: G.accent, border: "none", borderRadius: 8, fontSize: 13, color: G.bg, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: forecastLoading ? 0.7 : 1 }}>
+                {forecastLoading ? "Генерирую..." : "🔮 Создать прогноз"}
               </button>
-
-              {(forecastResult||forecastLoading)&&(
-                <GothicFrame style={{padding:"16px 18px"}}>
-                  {forecastLoading?<LoadingDots/>:<div style={{fontSize:13,color:G.textMid,lineHeight:1.85,whiteSpace:"pre-wrap"}}>{forecastResult}</div>}
+              {(forecastResult || forecastLoading) && (
+                <GothicFrame style={{ padding: "16px 18px" }}>
+                  {forecastLoading ? <LoadingDots /> : <div style={{ fontSize: 13, color: G.textMid, lineHeight: 1.85, whiteSpace: "pre-wrap" }}>{forecastResult}</div>}
                 </GothicFrame>
               )}
             </div>
           )}
 
           {/* DYNAMICS */}
-          {tab==="dynamics" && (
-            <div className="main-pad" style={{padding:"20px",display:"flex",flexDirection:"column",gap:18,animation:"fadeIn 0.3s ease",maxWidth:760}}>
-              <div style={{fontFamily:"Georgia,serif",fontSize:16,color:G.accent,letterSpacing:"0.05em"}}>⚭ Динамика персонажей</div>
-              <div style={{fontSize:13,color:G.textDim}}>Выберите двух персонажей — AI проанализирует их взаимодействие.</div>
-
-              <div className="dyn-grid" style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:12,alignItems:"start"}}>
-                <div>
-                  <div style={{fontSize:10,color:G.textDim,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Персонаж А</div>
-                  <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                    {chars.map(c=>(
-                      <div key={c.id} onClick={()=>setDynCharA(c.id)} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 11px",borderRadius:9,cursor:"pointer",border:`0.5px solid ${dynCharA===c.id?G.accentDim:G.border}`,background:dynCharA===c.id?G.accentSoft:"none",transition:"all 0.15s"}}>
-                        <Avatar char={c} size={24}/>
-                        <span style={{fontSize:12,color:dynCharA===c.id?G.accent:G.textMid,fontWeight:dynCharA===c.id?600:400}}>{c.name||"Безымянный"}</span>
-                      </div>
-                    ))}
-                  </div>
+          {tab === "dynamics" && (
+            <div className="main-pad" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 18, animation: "fadeIn 0.3s ease", maxWidth: 760 }}>
+              <div style={{ fontFamily: "Georgia,serif", fontSize: 16, color: G.accent }}>⚭ Динамика персонажей</div>
+              {chars.length < 2 ? (
+                <div style={{ textAlign: "center", padding: "40px 20px", color: G.textDim }}>
+                  <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.4 }}>⚭</div>
+                  <div style={{ fontSize: 14, color: G.textMid, marginBottom: 16 }}>Нужно минимум два персонажа</div>
+                  <button onClick={addChar} style={{ padding: "9px 20px", background: G.accent, border: "none", borderRadius: 8, fontSize: 13, color: G.bg, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>＋ Создать персонажа</button>
                 </div>
-                <div style={{textAlign:"center",fontSize:22,color:G.textDim,userSelect:"none",paddingTop:32}}>⚭</div>
-                <div>
-                  <div style={{fontSize:10,color:G.textDim,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Персонаж Б</div>
-                  <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                    {chars.map(c=>(
-                      <div key={c.id} onClick={()=>setDynCharB(c.id)} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 11px",borderRadius:9,cursor:"pointer",border:`0.5px solid ${dynCharB===c.id?G.purpleDim:G.border}`,background:dynCharB===c.id?G.purpleSoft:"none",transition:"all 0.15s"}}>
-                        <Avatar char={c} size={24}/>
-                        <span style={{fontSize:12,color:dynCharB===c.id?G.purple:G.textMid,fontWeight:dynCharB===c.id?600:400}}>{c.name||"Безымянный"}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {dynCharA && dynCharB && dynCharA!==dynCharB && (
+              ) : (
                 <>
-                  <div>
-                    <div style={{fontSize:10,color:G.textDim,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,fontWeight:600}}>Аспекты</div>
-                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:7}}>
-                      {DYN_ASPECTS.map(a=>(
-                        <div key={a.id} onClick={()=>setDynAspects(p=>p.includes(a.id)?p.filter(x=>x!==a.id):[...p,a.id])} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 11px",borderRadius:8,cursor:"pointer",border:`0.5px solid ${dynAspects.includes(a.id)?G.accentDim:G.border}`,background:dynAspects.includes(a.id)?G.accentSoft:"none",transition:"all 0.15s"}}>
-                          <span style={{fontSize:14}}>{a.icon}</span>
-                          <span style={{fontSize:12,color:dynAspects.includes(a.id)?G.accent:G.textMid}}>{a.label}</span>
-                          {dynAspects.includes(a.id)&&<span style={{marginLeft:"auto",color:G.accent,fontSize:11}}>✓</span>}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 12, alignItems: "start" }}>
+                    {[{ label: "Персонаж А", val: dynCharA, set: setDynCharA, color: G.accent, borderColor: G.accentDim, bg: G.accentSoft },
+                      null,
+                    { label: "Персонаж Б", val: dynCharB, set: setDynCharB, color: G.purple, borderColor: G.purpleDim, bg: G.purpleSoft }].map((side, si) => {
+                      if (side === null) return <div key="sep" style={{ textAlign: "center", fontSize: 22, color: G.textDim, paddingTop: 32 }}>⚭</div>;
+                      return (
+                        <div key={si}>
+                          <div style={{ fontSize: 10, color: G.textDim, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8, fontWeight: 600 }}>{side.label}</div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                            {chars.map(c => (
+                              <div key={c.id} onClick={() => side.set(c.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 11px", borderRadius: 9, cursor: "pointer", border: `0.5px solid ${side.val === c.id ? side.borderColor : G.border}`, background: side.val === c.id ? side.bg : "none" }}>
+                                <Avatar char={c} size={24} />
+                                <span style={{ fontSize: 12, color: side.val === c.id ? side.color : G.textMid, fontWeight: side.val === c.id ? 600 : 400 }}>{c.name || "Безымянный"}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
 
-                  <GothicFrame style={{padding:"14px 18px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      <Avatar char={chars.find(c=>c.id===dynCharA)} size={32}/>
-                      <span style={{fontSize:13,fontWeight:600,color:G.accent,fontFamily:"Georgia,serif"}}>{chars.find(c=>c.id===dynCharA)?.name||"А"}</span>
-                    </div>
-                    <span style={{fontSize:18,color:G.textDim}}>⚭</span>
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      <Avatar char={chars.find(c=>c.id===dynCharB)} size={32}/>
-                      <span style={{fontSize:13,fontWeight:600,color:G.purple,fontFamily:"Georgia,serif"}}>{chars.find(c=>c.id===dynCharB)?.name||"Б"}</span>
-                    </div>
-                    <button onClick={runAllDynamics} disabled={Object.values(dynLoading).some(v=>v)||dynAspects.length===0}
-                      style={{marginLeft:"auto",padding:"8px 18px",background:G.accent,border:"none",borderRadius:8,fontSize:13,color:G.bg,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:Object.values(dynLoading).some(v=>v)?0.6:1}}>
-                      {Object.values(dynLoading).some(v=>v)?"Анализирую...":"✦ Запустить"}
-                    </button>
-                  </GothicFrame>
+                  {dynCharA && dynCharB && dynCharA !== dynCharB && (
+                    <>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 7 }}>
+                        {DYN_ASPECTS.map(a => (
+                          <div key={a.id} onClick={() => setDynAspects(p => p.includes(a.id) ? p.filter(x => x !== a.id) : [...p, a.id])} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 11px", borderRadius: 8, cursor: "pointer", border: `0.5px solid ${dynAspects.includes(a.id) ? G.accentDim : G.border}`, background: dynAspects.includes(a.id) ? G.accentSoft : "none" }}>
+                            <span style={{ fontSize: 14 }}>{a.icon}</span>
+                            <span style={{ fontSize: 12, color: dynAspects.includes(a.id) ? G.accent : G.textMid }}>{a.label}</span>
+                            {dynAspects.includes(a.id) && <span style={{ marginLeft: "auto", color: G.accent, fontSize: 11 }}>✓</span>}
+                          </div>
+                        ))}
+                      </div>
 
-                  <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                    {DYN_ASPECTS.filter(a=>dynAspects.includes(a.id)).map(aspect=>(
-                      <GothicFrame key={aspect.id} style={{overflow:"hidden"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 16px",borderBottom:dynResult[aspect.id]||dynLoading[aspect.id]?`0.5px solid ${G.border}`:"none"}}>
-                          <span style={{fontSize:17}}>{aspect.icon}</span>
-                          <span style={{fontSize:13,fontWeight:500,color:G.text}}>{aspect.label}</span>
-                          {!dynResult[aspect.id]&&!dynLoading[aspect.id]&&(
-                            <button onClick={()=>runDynamics(aspect.id)} style={{marginLeft:"auto",padding:"4px 12px",background:"none",border:`0.5px solid ${G.border}`,borderRadius:6,fontSize:11,color:G.textDim,cursor:"pointer",fontFamily:"inherit"}} className="hover-accent">Запустить</button>
-                          )}
-                          {dynResult[aspect.id]&&!dynLoading[aspect.id]&&(
-                            <button onClick={()=>runDynamics(aspect.id)} style={{marginLeft:"auto",padding:"4px 12px",background:"none",border:`0.5px solid ${G.border}`,borderRadius:6,fontSize:11,color:G.textDim,cursor:"pointer",fontFamily:"inherit"}} className="hover-accent">↺</button>
-                          )}
-                        </div>
-                        {dynLoading[aspect.id]&&<div style={{padding:"12px 16px"}}><LoadingDots/></div>}
-                        {dynResult[aspect.id]&&!dynLoading[aspect.id]&&(
-                          <div style={{padding:"14px 16px",fontSize:13,color:G.textMid,lineHeight:1.85,whiteSpace:"pre-wrap"}}>{dynResult[aspect.id]}</div>
-                        )}
+                      <GothicFrame style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                        <Avatar char={chars.find(c => c.id === dynCharA)} size={32} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: G.accent, fontFamily: "Georgia,serif" }}>{chars.find(c => c.id === dynCharA)?.name}</span>
+                        <span style={{ fontSize: 18, color: G.textDim }}>⚭</span>
+                        <Avatar char={chars.find(c => c.id === dynCharB)} size={32} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: G.purple, fontFamily: "Georgia,serif" }}>{chars.find(c => c.id === dynCharB)?.name}</span>
+                        <button onClick={runAllDynamics} disabled={Object.values(dynLoading).some(v => v) || dynAspects.length === 0}
+                          style={{ marginLeft: "auto", padding: "8px 18px", background: G.accent, border: "none", borderRadius: 8, fontSize: 13, color: G.bg, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: Object.values(dynLoading).some(v => v) ? 0.6 : 1 }}>
+                          {Object.values(dynLoading).some(v => v) ? "Анализирую..." : "✦ Запустить"}
+                        </button>
                       </GothicFrame>
-                    ))}
-                  </div>
-                </>
-              )}
 
-              {chars.length < 2 && (
-                <div style={{textAlign:"center",padding:"40px 20px",color:G.textDim}}>
-                  <div style={{fontSize:32,marginBottom:12,opacity:0.4}}>⚭</div>
-                  <div style={{fontSize:14,color:G.textMid,marginBottom:6}}>Нужно минимум два персонажа</div>
-                  <button onClick={addChar} style={{marginTop:16,padding:"9px 20px",background:G.accent,border:"none",borderRadius:8,fontSize:13,color:G.bg,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>＋ Создать персонажа</button>
-                </div>
-              )}
-              {chars.length >= 2 && dynCharA && dynCharB && dynCharA===dynCharB && (
-                <div style={{textAlign:"center",padding:"20px",color:G.textDim,fontSize:13}}>Выберите двух <em>разных</em> персонажей</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {DYN_ASPECTS.filter(a => dynAspects.includes(a.id)).map(aspect => (
+                          <GothicFrame key={aspect.id} style={{ overflow: "hidden" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 16px", borderBottom: dynResult[aspect.id] || dynLoading[aspect.id] ? `0.5px solid ${G.border}` : "none" }}>
+                              <span style={{ fontSize: 17 }}>{aspect.icon}</span>
+                              <span style={{ fontSize: 13, fontWeight: 500, color: G.text }}>{aspect.label}</span>
+                              {!dynResult[aspect.id] && !dynLoading[aspect.id] && (
+                                <button onClick={() => runDynamics(aspect.id)} style={{ marginLeft: "auto", padding: "4px 12px", background: "none", border: `0.5px solid ${G.border}`, borderRadius: 6, fontSize: 11, color: G.textDim, cursor: "pointer", fontFamily: "inherit" }} className="hov">Запустить</button>
+                              )}
+                              {dynResult[aspect.id] && !dynLoading[aspect.id] && (
+                                <button onClick={() => runDynamics(aspect.id)} style={{ marginLeft: "auto", padding: "4px 12px", background: "none", border: `0.5px solid ${G.border}`, borderRadius: 6, fontSize: 11, color: G.textDim, cursor: "pointer", fontFamily: "inherit" }} className="hov">↺</button>
+                              )}
+                            </div>
+                            {dynLoading[aspect.id] && <div style={{ padding: "12px 16px" }}><LoadingDots /></div>}
+                            {dynResult[aspect.id] && !dynLoading[aspect.id] && (
+                              <div style={{ padding: "14px 16px", fontSize: 13, color: G.textMid, lineHeight: 1.85, whiteSpace: "pre-wrap" }}>{dynResult[aspect.id]}</div>
+                            )}
+                          </GothicFrame>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
               )}
             </div>
           )}
 
           {/* CHAT */}
-          {tab==="chat" && (
-            <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 50px)"}}>
-              <div style={{padding:"10px 16px",borderBottom:`0.5px solid ${G.border}`,display:"flex",alignItems:"center",gap:12,background:G.surface,flexShrink:0}}>
-                <Avatar char={char} size={30}/>
+          {tab === "chat" && (
+            <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 50px)" }}>
+              <div style={{ padding: "10px 16px", borderBottom: `0.5px solid ${G.border}`, display: "flex", alignItems: "center", gap: 12, background: G.surface, flexShrink: 0 }}>
+                <Avatar char={char} size={30} />
                 <div>
-                  <div style={{fontWeight:600,fontSize:13,color:G.text,fontFamily:"Georgia,serif"}}>{char.name||"Безымянный"}</div>
-                  <div style={{fontSize:11,color:G.textDim}}>Диалог · психология в ролях</div>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: G.text, fontFamily: "Georgia,serif" }}>{char.name || "Безымянный"}</div>
+                  <div style={{ fontSize: 11, color: G.textDim }}>Диалог · психология в ролях</div>
                 </div>
-                <button onClick={()=>setChatMessages([])} style={{marginLeft:"auto",background:"none",border:`0.5px solid ${G.border}`,borderRadius:6,padding:"4px 10px",fontSize:11,color:G.textDim,cursor:"pointer",fontFamily:"inherit"}} className="hover-accent">Очистить</button>
+                <button onClick={() => setChatMessages([])} style={{ marginLeft: "auto", background: "none", border: `0.5px solid ${G.border}`, borderRadius: 6, padding: "4px 10px", fontSize: 11, color: G.textDim, cursor: "pointer", fontFamily: "inherit" }} className="hov">Очистить</button>
               </div>
-
-              <div style={{flex:1,overflowY:"auto",padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
-                {chatMessages.length===0&&(
-                  <div style={{textAlign:"center",padding:"50px 20px",color:G.textDim,animation:"fadeIn 0.5s ease"}}>
-                    <div style={{fontSize:36,marginBottom:12,opacity:0.5}}>✦</div>
-                    <div style={{fontFamily:"Georgia,serif",fontSize:14,color:G.textMid,marginBottom:6}}>{char.name||"Персонаж"} ждёт</div>
-                    <div style={{fontSize:12,color:G.textDim,lineHeight:1.6}}>Жесты — курсивом.<br/>После реплики — психологический комментарий.</div>
+              <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 12 }}>
+                {chatMessages.length === 0 && (
+                  <div style={{ textAlign: "center", padding: "50px 20px", color: G.textDim }}>
+                    <div style={{ fontSize: 36, marginBottom: 12, opacity: 0.5 }}>✦</div>
+                    <div style={{ fontFamily: "Georgia,serif", fontSize: 14, color: G.textMid, marginBottom: 6 }}>{char.name || "Персонаж"} ждёт</div>
+                    <div style={{ fontSize: 12, color: G.textDim, lineHeight: 1.6 }}>Жесты — курсивом. После реплики — психологический комментарий.</div>
                   </div>
                 )}
-                {chatMessages.map((m,i)=>{
-                  if (m.role==="user") return (
-                    <div key={i} className="chat-msg-user" style={{alignSelf:"flex-end",maxWidth:"75%",animation:"fadeIn 0.2s ease"}}>
-                      <div style={{background:G.purpleDim,color:G.text,borderRadius:"14px 14px 3px 14px",padding:"10px 14px",fontSize:13,lineHeight:1.65}}>{m.content}</div>
+                {chatMessages.map((m, i) => {
+                  if (m.role === "user") return (
+                    <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", animation: "fadeIn 0.2s ease" }}>
+                      <div style={{ background: G.purpleDim, color: G.text, borderRadius: "14px 14px 3px 14px", padding: "10px 14px", fontSize: 13, lineHeight: 1.65 }}>{m.content}</div>
                     </div>
                   );
                   const parts = m.content.split(/\n---\n|\n---$/);
                   return (
-                    <div key={i} className="chat-msg-assistant" style={{alignSelf:"flex-start",maxWidth:"88%",display:"flex",flexDirection:"column",gap:8,animation:"fadeIn 0.2s ease"}}>
-                      <GothicFrame style={{padding:"12px 16px"}}>
-                        <div style={{fontSize:13,color:G.text,lineHeight:1.8}}>{renderChatMsg(parts[0]||"")}</div>
+                    <div key={i} style={{ alignSelf: "flex-start", maxWidth: "88%", display: "flex", flexDirection: "column", gap: 8, animation: "fadeIn 0.2s ease" }}>
+                      <GothicFrame style={{ padding: "12px 16px" }}>
+                        <div style={{ fontSize: 13, color: G.text, lineHeight: 1.8 }}>{renderChatMsg(parts[0] || "")}</div>
                       </GothicFrame>
-                      {parts[1]&&(
-                        <div style={{background:G.accentSoft,border:`0.5px solid ${G.accentDim}`,borderRadius:9,padding:"8px 12px",fontSize:12,color:G.accentDim,lineHeight:1.6,fontStyle:"italic"}}>
-                          ✦ {parts[1].trim()}
-                        </div>
-                      )}
+                      {parts[1] && <div style={{ background: G.accentSoft, border: `0.5px solid ${G.accentDim}`, borderRadius: 9, padding: "8px 12px", fontSize: 12, color: G.accentDim, lineHeight: 1.6, fontStyle: "italic" }}>✦ {parts[1].trim()}</div>}
                     </div>
                   );
                 })}
-                {chatLoading&&(
-                  <div style={{alignSelf:"flex-start"}}>
-                    <GothicFrame style={{padding:"12px 16px",display:"inline-block"}}><LoadingDots/></GothicFrame>
-                  </div>
-                )}
-                <div ref={chatEndRef}/>
+                {chatLoading && <div style={{ alignSelf: "flex-start" }}><GothicFrame style={{ padding: "12px 16px", display: "inline-block" }}><LoadingDots /></GothicFrame></div>}
+                <div ref={chatEndRef} />
               </div>
-
-              <div style={{padding:"10px 12px",borderTop:`0.5px solid ${G.border}`,background:G.surface,display:"flex",gap:8,flexShrink:0}}>
-                <input
-                  value={chatInput}
-                  onChange={e=>setChatInput(e.target.value)}
-                  onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&(e.preventDefault(),sendChat())}
-                  placeholder={`Обратитесь к ${char.name||"персонажу"}...`}
-                  style={{flex:1,background:G.bg,border:`0.5px solid ${G.border}`,borderRadius:10,padding:"9px 14px",fontSize:13,color:G.text,fontFamily:"inherit",outline:"none"}}
-                  onFocus={e=>e.target.style.borderColor=G.accentDim}
-                  onBlur={e=>e.target.style.borderColor=G.border}
+              <div style={{ padding: "10px 12px", borderTop: `0.5px solid ${G.border}`, background: G.surface, display: "flex", gap: 8, flexShrink: 0 }}>
+                <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendChat())}
+                  placeholder={`Обратитесь к ${char.name || "персонажу"}...`}
+                  style={{ flex: 1, background: G.bg, border: `0.5px solid ${G.border}`, borderRadius: 10, padding: "9px 14px", fontSize: 13, color: G.text, fontFamily: "inherit", outline: "none" }}
+                  onFocus={e => e.target.style.borderColor = G.accentDim} onBlur={e => e.target.style.borderColor = G.border}
                 />
-                <button onClick={sendChat} disabled={chatLoading||!chatInput.trim()} style={{padding:"9px 16px",background:G.accent,border:"none",borderRadius:10,fontSize:13,color:G.bg,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0,opacity:chatLoading||!chatInput.trim()?0.5:1}}>
-                  ↑
-                </button>
+                <button onClick={sendChat} disabled={chatLoading || !chatInput.trim()} style={{ padding: "9px 16px", background: G.accent, border: "none", borderRadius: 10, fontSize: 13, color: G.bg, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, opacity: chatLoading || !chatInput.trim() ? 0.5 : 1 }}>↑</button>
               </div>
             </div>
           )}
-
         </div>
       </div>
 
-      {showBio && char && <BioModal char={char} updateChar={updateChar} onClose={()=>setShowBio(false)}/>}
-      {showSave && char && <SaveModal chars={chars} char={char} onClose={()=>setShowSave(false)}/>}
+      {showBio && char && <BioModal char={char} updateChar={updateChar} onClose={() => setShowBio(false)} />}
+      {showExport && char && <ExportModal chars={chars} char={char} dynResult={dynResult} dynCharB={dynCharB} onClose={() => setShowExport(false)} />}
     </div>
   );
 }
